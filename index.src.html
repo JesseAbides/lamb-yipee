@@ -134,36 +134,109 @@
       <div class="hill"></div>
       <div class="hill-fg"></div>
 
-      <!-- Hill scenery: Trees, Wildflowers, Peaceful Animals -->
+      <!-- Hill scenery: Big Lush Trees with Natural Flowerbeds at the Trunks -->
       <div class="hill-scenery" aria-hidden="true">
-        <!-- Trees on hills -->
-        <div class="scenery-item tree tree-pine tree-left-1">🌲</div>
-        <div class="scenery-item tree tree-oak tree-left-2">🌳</div>
-        <div class="scenery-item tree tree-pine tree-mid-left">🌲</div>
-        <div class="scenery-item tree tree-oak tree-mid-right">🌳</div>
-        <div class="scenery-item tree tree-pine tree-right-1">🌲</div>
-        <div class="scenery-item tree tree-oak tree-right-2">🌳</div>
+        <!-- Left Tree Grove with Flowerbed -->
+        <div class="scenery-grove grove-left">
+          <svg class="tree-svg tree-secondary" viewBox="0 0 90 140" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pineGradL" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6ecb34"/>
+                <stop offset="60%" stop-color="#3d8e19"/>
+                <stop offset="100%" stop-color="#235c0d"/>
+              </linearGradient>
+            </defs>
+            <rect x="41" y="96" width="9" height="38" rx="3" fill="#543722"/>
+            <polygon points="45,12 18,52 30,52 14,88 80,88 62,52 74,52" fill="url(#pineGradL)" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.15))"/>
+          </svg>
+          <svg class="tree-svg tree-main" viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="trunkGradL" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#5a3d28"/>
+                <stop offset="50%" stop-color="#7a5538"/>
+                <stop offset="100%" stop-color="#4d3220"/>
+              </linearGradient>
+              <radialGradient id="foliageGradL1" cx="38%" cy="32%" r="68%">
+                <stop offset="0%" stop-color="#a4f04c"/>
+                <stop offset="65%" stop-color="#59b224"/>
+                <stop offset="100%" stop-color="#337812"/>
+              </radialGradient>
+              <radialGradient id="foliageGradL2" cx="45%" cy="38%" r="62%">
+                <stop offset="0%" stop-color="#b2f75a"/>
+                <stop offset="70%" stop-color="#64bf2e"/>
+                <stop offset="100%" stop-color="#3a8216"/>
+              </radialGradient>
+            </defs>
+            <!-- Trunk & Branches -->
+            <path d="M58 170 L58 102 Q44 86 32 76 Q42 74 60 90 L62 70 Q70 76 68 92 Q80 82 92 80 Q82 89 68 104 L70 170 Z" fill="url(#trunkGradL)"/>
+            <!-- Layered Canopies -->
+            <circle cx="42" cy="72" r="30" fill="url(#foliageGradL1)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"/>
+            <circle cx="88" cy="72" r="30" fill="url(#foliageGradL1)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"/>
+            <circle cx="65" cy="44" r="35" fill="url(#foliageGradL2)" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.18))"/>
+            <circle cx="65" cy="75" r="28" fill="url(#foliageGradL2)"/>
+            <ellipse cx="56" cy="34" rx="15" ry="9" fill="#c3f878" opacity="0.6"/>
+            <ellipse cx="82" cy="62" rx="11" ry="7" fill="#c3f878" opacity="0.5"/>
+          </svg>
+          <!-- Flowerbed cluster nestled at the tree trunk base -->
+          <div class="tree-flowerbed">
+            <span class="flower-cluster-item fl-1">🌸</span>
+            <span class="flower-cluster-item fl-2">🌼</span>
+            <span class="flower-cluster-item fl-3">🌷</span>
+            <span class="flower-cluster-item fl-4">🌺</span>
+            <span class="grass-tuft">🌱</span>
+          </div>
+        </div>
 
-        <!-- Wildflowers across the slopes -->
-        <div class="scenery-item flower fl-1">🌸</div>
-        <div class="scenery-item flower fl-2">🌼</div>
-        <div class="scenery-item flower fl-3">🌷</div>
-        <div class="scenery-item flower fl-4">🌻</div>
-        <div class="scenery-item flower fl-5">🌺</div>
-        <div class="scenery-item flower fl-6">🌼</div>
-        <div class="scenery-item flower fl-7">🌸</div>
-        <div class="scenery-item flower fl-8">🌷</div>
-        <div class="scenery-item flower fl-9">🌻</div>
-        <div class="scenery-item flower fl-10">🌼</div>
-
-        <!-- Peaceful meadow animals -->
-        <div class="scenery-item animal animal-bunny">🐇</div>
-        <div class="scenery-item animal animal-butterfly-1">🦋</div>
-        <div class="scenery-item animal animal-butterfly-2">🦋</div>
-        <div class="scenery-item animal animal-dove">🕊️</div>
-        <div class="scenery-item animal animal-deer">🦌</div>
-        <div class="scenery-item animal animal-sheep">🐑</div>
-        <div class="scenery-item animal animal-bee">🐝</div>
+        <!-- Right Tree Grove with Flowerbed -->
+        <div class="scenery-grove grove-right">
+          <svg class="tree-svg tree-secondary" viewBox="0 0 90 140" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="pineGradR" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6ecb34"/>
+                <stop offset="60%" stop-color="#3d8e19"/>
+                <stop offset="100%" stop-color="#235c0d"/>
+              </linearGradient>
+            </defs>
+            <rect x="41" y="96" width="9" height="38" rx="3" fill="#543722"/>
+            <polygon points="45,12 18,52 30,52 14,88 80,88 62,52 74,52" fill="url(#pineGradR)" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.15))"/>
+          </svg>
+          <svg class="tree-svg tree-main" viewBox="0 0 130 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="trunkGradR" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#4d3220"/>
+                <stop offset="50%" stop-color="#7a5538"/>
+                <stop offset="100%" stop-color="#5a3d28"/>
+              </linearGradient>
+              <radialGradient id="foliageGradR1" cx="44%" cy="32%" r="68%">
+                <stop offset="0%" stop-color="#a4f04c"/>
+                <stop offset="65%" stop-color="#59b224"/>
+                <stop offset="100%" stop-color="#337812"/>
+              </radialGradient>
+              <radialGradient id="foliageGradR2" cx="40%" cy="38%" r="62%">
+                <stop offset="0%" stop-color="#b2f75a"/>
+                <stop offset="70%" stop-color="#64bf2e"/>
+                <stop offset="100%" stop-color="#3a8216"/>
+              </radialGradient>
+            </defs>
+            <!-- Trunk & Branches -->
+            <path d="M58 170 L58 102 Q44 86 32 76 Q42 74 60 90 L62 70 Q70 76 68 92 Q80 82 92 80 Q82 89 68 104 L70 170 Z" fill="url(#trunkGradR)"/>
+            <!-- Layered Canopies -->
+            <circle cx="88" cy="72" r="30" fill="url(#foliageGradR1)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"/>
+            <circle cx="42" cy="72" r="30" fill="url(#foliageGradR1)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"/>
+            <circle cx="65" cy="44" r="35" fill="url(#foliageGradR2)" filter="drop-shadow(0 4px 8px rgba(0,0,0,0.18))"/>
+            <circle cx="65" cy="75" r="28" fill="url(#foliageGradR2)"/>
+            <ellipse cx="74" cy="34" rx="15" ry="9" fill="#c3f878" opacity="0.6"/>
+            <ellipse cx="48" cy="62" rx="11" ry="7" fill="#c3f878" opacity="0.5"/>
+          </svg>
+          <!-- Flowerbed cluster nestled at the tree trunk base -->
+          <div class="tree-flowerbed">
+            <span class="flower-cluster-item fl-1">🌼</span>
+            <span class="flower-cluster-item fl-2">🌸</span>
+            <span class="flower-cluster-item fl-3">🌻</span>
+            <span class="flower-cluster-item fl-4">🌷</span>
+            <span class="grass-tuft">🌱</span>
+          </div>
+        </div>
       </div>
 
       <!-- Player avatar stands on the left and reacts to taps with live video -->

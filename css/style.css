@@ -447,75 +447,102 @@ body {
   z-index: 4;
 }
 
-/* Hill scenery: Trees, Wildflowers, Peaceful Animals */
+/* Hill scenery: Big Beautiful Trees with Natural Flowerbed Clusters at the Trunks */
 .hill-scenery {
   position: absolute;
   inset: 0;
   z-index: 4;
   pointer-events: none;
+  overflow: hidden;
 }
-.scenery-item {
+
+.scenery-grove {
   position: absolute;
-  user-select: none;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+  pointer-events: none;
 }
-.tree {
-  font-size: clamp(22px, 3.2vw, 34px);
+.grove-left {
+  left: -10px;
+  bottom: 24%;
+  width: clamp(140px, 20vw, 220px);
+  height: clamp(170px, 24vw, 260px);
+}
+.grove-right {
+  right: -10px;
+  bottom: 24%;
+  width: clamp(140px, 20vw, 220px);
+  height: clamp(170px, 24vw, 260px);
+}
+
+.tree-svg {
+  position: absolute;
+  bottom: 0;
+  overflow: visible;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.16));
+}
+.tree-main {
+  width: 100%;
+  height: 100%;
+  z-index: 2;
   transform-origin: bottom center;
 }
-.tree-left-1 { bottom: 42%; left: 4%; }
-.tree-left-2 { bottom: 38%; left: 13%; font-size: clamp(20px, 2.8vw, 30px); }
-.tree-mid-left { bottom: 48%; left: 32%; font-size: clamp(18px, 2.5vw, 26px); opacity: 0.9; }
-.tree-mid-right { bottom: 47%; right: 30%; font-size: clamp(19px, 2.6vw, 28px); opacity: 0.9; }
-.tree-right-1 { bottom: 42%; right: 12%; font-size: clamp(20px, 2.8vw, 30px); }
-.tree-right-2 { bottom: 38%; right: 4%; }
-
-/* Flowers */
-.flower {
-  font-size: clamp(15px, 2vw, 22px);
-  animation: flowerSway 3s ease-in-out infinite alternate;
+.grove-left .tree-secondary {
+  width: 65%;
+  height: 75%;
+  left: 48%;
+  bottom: 12%;
+  z-index: 1;
+  opacity: 0.92;
 }
-.fl-1 { bottom: 26%; left: 8%; animation-delay: 0s; }
-.fl-2 { bottom: 18%; left: 18%; animation-delay: 0.4s; }
-.fl-3 { bottom: 29%; left: 24%; animation-delay: 0.8s; }
-.fl-4 { bottom: 14%; left: 34%; animation-delay: 1.2s; }
-.fl-5 { bottom: 22%; left: 46%; animation-delay: 0.3s; }
-.fl-6 { bottom: 15%; right: 42%; animation-delay: 0.7s; }
-.fl-7 { bottom: 28%; right: 33%; animation-delay: 1.1s; }
-.fl-8 { bottom: 18%; right: 23%; animation-delay: 0.5s; }
-.fl-9 { bottom: 27%; right: 14%; animation-delay: 0.9s; }
-.fl-10 { bottom: 12%; right: 8%; animation-delay: 1.3s; }
-
-@keyframes flowerSway {
-  0% { transform: rotate(-5deg) translateY(0); }
-  100% { transform: rotate(5deg) translateY(-2px); }
+.grove-right .tree-secondary {
+  width: 65%;
+  height: 75%;
+  right: 48%;
+  bottom: 12%;
+  z-index: 1;
+  opacity: 0.92;
 }
 
-/* Meadow Animals */
-.animal {
-  font-size: clamp(18px, 2.4vw, 26px);
+/* Flowerbed cluster nestled directly at the tree trunk base */
+.tree-flowerbed {
+  position: absolute;
+  bottom: -4px;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  background: rgba(46, 125, 50, 0.16);
+  padding: 2px 8px;
+  border-radius: 999px;
+  backdrop-filter: blur(1px);
 }
-.animal-bunny { bottom: 22%; left: 28%; }
-.animal-dove { bottom: 52%; left: 20%; animation: doveFloat 4s ease-in-out infinite alternate; font-size: clamp(16px, 2vw, 24px); }
-.animal-deer { bottom: 36%; right: 20%; font-size: clamp(20px, 2.8vw, 30px); }
-.animal-sheep { bottom: 20%; right: 28%; }
-.animal-butterfly-1 { bottom: 38%; left: 40%; animation: butterflyFlutter 3.5s ease-in-out infinite; }
-.animal-butterfly-2 { bottom: 34%; right: 38%; animation: butterflyFlutter 4s ease-in-out infinite reverse; }
-.animal-bee { bottom: 24%; left: 52%; animation: beeHover 2.5s ease-in-out infinite; }
+.grove-left .tree-flowerbed {
+  left: 18%;
+}
+.grove-right .tree-flowerbed {
+  right: 18%;
+}
 
-@keyframes butterflyFlutter {
-  0% { transform: translate(0, 0) rotate(0deg) scale(0.9); }
-  33% { transform: translate(12px, -14px) rotate(12deg) scale(1.1); }
-  66% { transform: translate(-8px, -24px) rotate(-10deg) scale(0.95); }
-  100% { transform: translate(0, 0) rotate(0deg) scale(0.9); }
+.flower-cluster-item {
+  font-size: clamp(14px, 1.8vw, 20px);
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: flowerGentleSway 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
 }
-@keyframes beeHover {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(6px, -8px); }
+.flower-cluster-item.fl-1 { animation-delay: 0s; }
+.flower-cluster-item.fl-2 { animation-delay: 0.5s; font-size: clamp(12px, 1.6vw, 18px); }
+.flower-cluster-item.fl-3 { animation-delay: 1.1s; font-size: clamp(15px, 2vw, 22px); }
+.flower-cluster-item.fl-4 { animation-delay: 0.8s; font-size: clamp(13px, 1.7vw, 19px); }
+
+.grass-tuft {
+  font-size: clamp(11px, 1.4vw, 15px);
+  opacity: 0.85;
+  margin-left: -2px;
 }
-@keyframes doveFloat {
-  0% { transform: translateY(0) rotate(-2deg); }
-  100% { transform: translateY(-8px) rotate(2deg); }
+
+@keyframes flowerGentleSway {
+  0% { transform: rotate(-4deg) translateY(0); }
+  100% { transform: rotate(4deg) translateY(-1.5px); }
 }
 
 /* word bubbles arranged on the hill arc */
