@@ -355,6 +355,14 @@ function startGame(mode, verse, opts = {}) {
   if (reactionVid) {
     reactionVid.classList.remove("active");
     reactionVid.style.display = "none";
+    const initialHappyVid = getAvatarVideo(G.you.avatarId, "happy");
+    if (initialHappyVid) {
+      reactionVid.src = initialHappyVid;
+      reactionVid.preload = "auto";
+      reactionVid.muted = true;
+      reactionVid.playsInline = true;
+      reactionVid.load();
+    }
   }
   const passBtn = $("#passBtn");
   if (passBtn) {
@@ -461,7 +469,7 @@ function onBubbleTap(word, el, e, player = 1) {
 
       // Bottom-left character avatar reaction video (Koa/Capybara etc)
       if (typeof triggerPlayerReaction === "function") {
-        triggerPlayerReaction("happy", 2000);
+        triggerPlayerReaction("happy", 2200);
       }
 
       // Bottom-right Yipee mascot cheer pop-up (always Yipee video)
@@ -477,7 +485,7 @@ function onBubbleTap(word, el, e, player = 1) {
     updateBars();
 
     // Check for Medium mode phrase completion
-    if (G.diffCfg && G.diffCfg.type === "medium" && G.diffCfg.phrases.length > 1 && G.phraseIdx === 0) {
+    if (G.diffCfg && G.diffCfg.type === "medium" && G.diffCfg.phrases && G.diffCfg.phrases.length > 1 && G.phraseIdx === 0) {
       const p0Len = G.diffCfg.phrases[0].length;
       if (racer.placed.length === p0Len) {
         advanceToPhraseTwo(player);
@@ -493,7 +501,9 @@ function onBubbleTap(word, el, e, player = 1) {
         done: racer.done
       });
     }
-    if (racer.done) {
+    if (racer.done || racer.placed.length >= racer.target.length) {
+      racer.done = true;
+      if (!racer.doneAt) racer.doneAt = performance.now();
       if (G.rivalKind === "online" && player === 1) {
         Online.sendMatchAction({ type: "finish", time: performance.now() - G.startAt });
       }
@@ -511,7 +521,7 @@ function onBubbleTap(word, el, e, player = 1) {
       say("#yipeeSay", pick(["Try another word! 💛", "Not that one!", "Almost! 🤔"]), "bad");
       // Bottom-left character avatar oops reaction video
       if (typeof triggerPlayerReaction === "function") {
-        triggerPlayerReaction("oops", 1800);
+        triggerPlayerReaction("oops", 2000);
       }
       // Bottom-right Yipee mascot oops pop-up (always Yipee video)
       triggerAvatarReaction("oops", pick(["Oops, try again! 🤔", "Not that one! 💛", "Almost! ✨", "Keep trying! 💪"]));
@@ -522,6 +532,7 @@ function onBubbleTap(word, el, e, player = 1) {
 function advanceToPhraseTwo(player = 1) {
   if (!G.diffCfg || !G.diffCfg.phrases || G.diffCfg.phrases.length < 2) return;
   G.phraseIdx = 1;
+  G.currentPhraseIdx = 1;
   const p0Len = G.diffCfg.phrases[0].length;
   const p1 = G.diffCfg.phrases[1];
   const p1Word0 = p1[0];
@@ -530,7 +541,7 @@ function advanceToPhraseTwo(player = 1) {
   fillBoardWord(p0Len, 1, p1Word0, true);
   if (G.you && G.you.placed.length === p0Len) {
     G.you.placed.push(p1Word0);
-    if (G.you.placed.length === G.you.target.length) {
+    if (G.you.placed.length >= G.you.target.length) {
       G.you.done = true;
       G.you.doneAt = performance.now();
       finishRace("you");
@@ -540,7 +551,7 @@ function advanceToPhraseTwo(player = 1) {
   if (G.rival && G.rival.placed.length === p0Len) {
     fillBoardWord(p0Len, 2, p1Word0, true);
     G.rival.placed.push(p1Word0);
-    if (G.rival.placed.length === G.rival.target.length) {
+    if (G.rival.placed.length >= G.rival.target.length) {
       G.rival.done = true;
       G.rival.doneAt = performance.now();
     }
@@ -548,6 +559,7 @@ function advanceToPhraseTwo(player = 1) {
 
   const phraseChip = $("#hudPhrase");
   if (phraseChip) {
+    phraseChip.style.display = "inline-flex";
     phraseChip.textContent = `Phrase 2/${G.diffCfg.phrases.length}`;
   }
 
@@ -559,6 +571,7 @@ function advanceToPhraseTwo(player = 1) {
   area.querySelectorAll(".word-bubble").forEach(b => b.remove());
   G.bubbles = [];
 
+  const targetTokens = tokenize(G.verse.text);
   const isDuoLocal = G.mode === "duo" && G.rivalKind === "local";
   const words = buildWords(G.verse, "medium", 1);
   const words2 = isDuoLocal ? buildWords(G.verse, "medium", 1) : null;
@@ -572,7 +585,7 @@ function advanceToPhraseTwo(player = 1) {
       b.style.top = "-40px";
       b.addEventListener("pointerdown", (e) => onBubbleTap(word, b, e, p));
       area.appendChild(b);
-      G.bubbles.push({ word, el: b, taken: false, owner: p, isTarget: G.verseWords.includes(word) });
+      G.bubbles.push({ word, el: b, taken: false, owner: p, isTarget: targetTokens.includes(word) });
     });
   };
   if (isDuoLocal) {

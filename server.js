@@ -51,22 +51,41 @@ const server = http.createServer((req, res) => {
       else filePath = tryLamb;
     }
 
-    fs.readFile(filePath, (readErr, data) => {
-      if (readErr) {
-        res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end("500 Internal Server Error");
-        return;
-      }
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || "application/octet-stream";
+    const totalSize = stats.size;
 
-      const ext = path.extname(filePath).toLowerCase();
-      const contentType = MIME_TYPES[ext] || "application/octet-stream";
+    // Support HTTP Range requests for seamless video/audio streaming (HTTP 206)
+    const range = req.headers.range;
+    if (range && (ext === ".mp4" || ext === ".webm" || ext === ".mp3" || ext === ".wav")) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : totalSize - 1;
+      const chunksize = (end - start) + 1;
 
-      res.writeHead(200, {
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${totalSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunksize,
         "Content-Type": contentType,
-        "Cache-Control": "no-cache"
+        "Access-Control-Allow-Origin": "*"
       });
-      res.end(data);
+
+      const fileStream = fs.createReadStream(filePath, { start, end });
+      fileStream.pipe(res);
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": contentType,
+      "Content-Length": totalSize,
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "no-cache",
+      "Access-Control-Allow-Origin": "*"
     });
+
+    const fullStream = fs.createReadStream(filePath);
+    fullStream.pipe(res);
   });
 });
 

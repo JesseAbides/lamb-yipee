@@ -810,9 +810,15 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
   if (videoSrc) {
     vid.style.display = "block";
     vid.muted = true;
+    vid.defaultMuted = true;
     vid.playsInline = true;
     vid.loop = true;
-    if (vid.getAttribute("src") !== videoSrc) {
+    vid.setAttribute("muted", "");
+    vid.setAttribute("playsinline", "");
+    vid.setAttribute("autoplay", "");
+
+    const currentSrc = vid.getAttribute("src") || "";
+    if (currentSrc !== videoSrc && !currentSrc.endsWith(videoSrc)) {
       vid.src = videoSrc;
       vid.load();
     }
