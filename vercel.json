@@ -1,15 +1,17 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "public",
-  "cleanUrls": true,
   "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/lamb-yipee",
+      "destination": "/index.html"
+    },
     {
       "source": "/qa",
       "destination": "/qa/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
