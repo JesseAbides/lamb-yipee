@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    LAMB YIPEE — animated character v3
    Sculpted after the 3D-render reference: big head with curly
    pom-pom crown, wide splayed ears with pink inner, huge glossy
@@ -103,6 +103,7 @@ function getAvatarAccessorySVG(avatarId) {
 function makeLambSVG(opts = {}) {
   const id = opts.id || "x";
   const avatarId = opts.avatarId || opts.avatar || "flora";
+  const petImg = getAvatarImg(avatarId);
   const petCfg  = PET_AVATARS.find(p => p.id === avatarId) || PET_AVATARS[0];
   const wool    = opts.wool    || petCfg.wool || "#fdf6e8";
   const woolHi  = opts.woolHi  || "#fffdf6";
@@ -114,8 +115,63 @@ function makeLambSVG(opts = {}) {
   const hoofHi  = opts.hoofHi  || "#7b5844";
   const iris    = opts.iris    || "#8a5a28";
   const tongue  = opts.tongue  || "#f4899b";
-  const accessorySvg = getAvatarAccessorySVG(avatarId);
 
+  // Clean circle avatar without sheep body / ears / legs
+  if (petImg) {
+    return `
+<svg class="lamb-rig" viewBox="0 0 120 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="petHeadClip_${avatarId}_${id}">
+      <circle cx="60" cy="56" r="45" />
+    </clipPath>
+    <radialGradient id="shadG-${id}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(70,45,20,.28)"/>
+      <stop offset="100%" stop-color="rgba(70,45,20,0)"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse class="rig-shadow" cx="60" cy="116" rx="30" ry="7" fill="url(#shadG-${id})"/>
+
+  <g class="rig-root">
+    <!-- Hidden hooks for animation controllers -->
+    <g class="rig-leg-fl" style="display:none;opacity:0"><rect width="1" height="1"/></g>
+    <g class="rig-leg-fr" style="display:none;opacity:0"><rect width="1" height="1"/></g>
+    <g class="rig-leg-bl" style="display:none;opacity:0"><rect width="1" height="1"/></g>
+    <g class="rig-leg-br" style="display:none;opacity:0"><rect width="1" height="1"/></g>
+
+    <!-- HEAD: Clean circular player avatar -->
+    <g class="rig-head">
+      <g class="rig-ear-l" style="display:none;opacity:0"><path d="M0 0"/></g>
+      <g class="rig-ear-r" style="display:none;opacity:0"><path d="M0 0"/></g>
+      <g class="rig-eye-l" style="display:none;opacity:0"><g class="rig-gaze-l"><circle r="1"/></g><ellipse rx="1" ry="1"/><rect class="eye-lid"/><path class="eye-sad"/></g>
+      <g class="rig-eye-r" style="display:none;opacity:0"><g class="rig-gaze-r"><circle r="1"/></g><ellipse rx="1" ry="1"/><rect class="eye-lid"/><path class="eye-sad"/></g>
+      <g class="rig-mouth-happy" style="display:none;opacity:0"><path d="M0 0"/></g>
+      <g class="rig-mouth-sad" style="display:none;opacity:0"><path d="M0 0"/></g>
+
+      <g class="pet-acc pet-${avatarId}">
+        <circle cx="60" cy="56" r="47" fill="#ffffff" stroke="#ff9db8" stroke-width="4.5" filter="drop-shadow(0 6px 12px rgba(0,0,0,0.20))" />
+        <image href="${petImg}" x="15" y="11" width="90" height="90" clip-path="url(#petHeadClip_${avatarId}_${id})" preserveAspectRatio="xMidYMid slice" />
+      </g>
+    </g>
+
+    <!-- celebrate sparkles -->
+    <g class="rig-sparkles" opacity="0">
+      <text x="10" y="24" font-size="14">✨</text>
+      <text x="100" y="20" font-size="13">✨</text>
+      <text x="108" y="58" font-size="12">⭐</text>
+      <text x="2" y="62" font-size="12">⭐</text>
+      <text x="58" y="4" font-size="12">💫</text>
+    </g>
+
+    <!-- sweat drop on sad -->
+    <g class="rig-sweat" opacity="0">
+      <path d="M100 16 q4.5 8 0 11 q-4.5 -3 0 -11" fill="#7fc4f0"/>
+    </g>
+  </g>
+</svg>`;
+  }
+
+  const accessorySvg = getAvatarAccessorySVG(avatarId);
   return `
 <svg class="lamb-rig" viewBox="0 0 120 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
