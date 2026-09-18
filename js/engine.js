@@ -78,10 +78,10 @@ function tokenize(text) {
    The player never browses the scripture list (that would spoil the
    memory challenge) — instead they pick a difficulty and the game
    deals a RANDOM verse from the matching tier:
-     easy   — short verses  (≤ 12 words)
-     medium — medium verses (13–21 words)
+     easy   — short verses  (≤ 13 words)
+     medium — medium verses (14–21 words)
      hard   — long verses   (22+ words)                        */
-const WORD_TIERS = { easy: [1, 12], medium: [13, 21], hard: [22, 9999] };
+const WORD_TIERS = { easy: [1, 13], medium: [14, 21], hard: [22, 9999] };
 
 function wordCount(verse) { return tokenize(verse.text).length; }
 

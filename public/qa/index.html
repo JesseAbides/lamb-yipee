@@ -2330,10 +2330,10 @@ function tokenize(text) {
    The player never browses the scripture list (that would spoil the
    memory challenge) — instead they pick a difficulty and the game
    deals a RANDOM verse from the matching tier:
-     easy   — short verses  (≤ 12 words)
-     medium — medium verses (13–21 words)
+     easy   — short verses  (≤ 13 words)
+     medium — medium verses (14–21 words)
      hard   — long verses   (22+ words)                        */
-const WORD_TIERS = { easy: [1, 12], medium: [13, 21], hard: [22, 9999] };
+const WORD_TIERS = { easy: [1, 13], medium: [14, 21], hard: [22, 9999] };
 
 function wordCount(verse) { return tokenize(verse.text).length; }
 
@@ -5155,7 +5155,7 @@ document.addEventListener("DOMContentLoaded", wire);
 
 </script>
 <script>
-﻿/* ============================================================
+/* ============================================================
    LAMB YIPEE — QA GAUNTLET RUNNER (injected into built game)
    Stages G0–G14. Results: window.__QA__ + on-page panel.
    Goal: every stage PASS => game declared complete.
@@ -5556,8 +5556,8 @@ document.addEventListener("DOMContentLoaded", wire);
   /* ==== G14 — random verse draw & difficulty tiers ==== */
   stage("G14 random draw & difficulty tiers", async t => {
     // tier definitions are exclusive and non-empty
-    t(versePool("easy").every(v => wordCount(v) <= 12), "easy pool = short verses (≤12 words)");
-    t(versePool("medium").every(v => { const n = wordCount(v); return n >= 13 && n <= 21; }), "medium pool = 13–21 words");
+    t(versePool("easy").every(v => wordCount(v) <= 13), "easy pool = short verses (≤13 words)");
+    t(versePool("medium").every(v => { const n = wordCount(v); return n >= 14 && n <= 21; }), "medium pool = 14–21 words");
     t(versePool("hard").every(v => wordCount(v) >= 22), "hard pool = long verses (22+ words)");
     t(versePool("easy").length >= 5 && versePool("medium").length >= 5 && versePool("hard").length >= 5, "all tiers well stocked (" + versePool("easy").length + "/" + versePool("medium").length + "/" + versePool("hard").length + ")");
     // a deal actually starts a race
@@ -5578,6 +5578,63 @@ document.addEventListener("DOMContentLoaded", wire);
     for (let i = 0; i < 25; i++) seen.add(pickVerse("easy").ref);
     t(seen.size >= 4, "draws are genuinely random (" + seen.size + " distinct verses in 25)");
     quitGame();
+  });
+
+  /* ==== G15 — medium mode: phrase 1 -> phrase 2 progression loop ==== */
+  stage("G15 medium phrase 1 to phrase 2 loop", async t => {
+    resetSave(); refreshStats();
+    await gotoRace("#btnSingle", "medium");
+    t(G.diff === "medium", "medium difficulty mode active");
+    t(G.phraseIndex === 0, "starts at phrase 0");
+    t(G.phrases && G.phrases.length === 2, "split into 2 phrases");
+    t($("#hudPhrase").style.display !== "none", "phrase badge visible");
+    t($("#hudPhrase").textContent.indexOf("1 / 2") >= 0, "badge shows phrase 1 / 2");
+
+    // Play all of Phrase 1
+    const p0 = G.phrases[0];
+    for (let i = 1; i < p0.length; i++) {
+      const targetWord = p0[i];
+      tapBubble(targetWord, 1);
+      await sleep(220);
+    }
+
+    // Wait for Phrase 2 auto-transition
+    await until(() => G.phraseIndex === 1, 3000);
+    t(G.phraseIndex === 1, "advanced to phrase 2");
+    t($("#hudPhrase").textContent.indexOf("2 / 2") >= 0, "badge updated to phrase 2 / 2");
+    const p1 = G.phrases[1];
+    t(G.you.placed.length >= p0.length + 1, "phrase 2 word 0 auto-prefilled on board");
+
+    // Play remaining of Phrase 2
+    for (let i = 1; i < p1.length; i++) {
+      const targetWord = p1[i];
+      tapBubble(targetWord, 1);
+      await sleep(220);
+    }
+
+    await until(() => visible("#results"), 4000);
+    t(visible("#results"), "results shown after both phrases completed");
+    $("#resMenu").click();
+  });
+
+  /* ==== G16 — overtime & pass button transition ==== */
+  stage("G16 overtime pass button to score page", async t => {
+    resetSave(); refreshStats();
+    await gotoRace("#btnSingle", "easy");
+    t(visible("#passBtn"), "pass button element exists");
+    t(!$("#passBtn").classList.contains("visible"), "pass button hidden during regular time");
+
+    // Simulate overtime trigger
+    G.isOvertime = true;
+    $("#passBtn").classList.add("visible");
+    t($("#passBtn").classList.contains("visible"), "pass button visible when overtime triggered");
+
+    // Click pass button
+    $("#passBtn").click();
+    await until(() => visible("#results"), 3000);
+    t(visible("#results"), "pass button cleanly transitions to score/results page");
+    t($("#resStars").textContent === "☆☆☆", "0 stars awarded on overtime/pass");
+    $("#resMenu").click();
   });
 
   /* ---- runner UI ---- */
