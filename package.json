@@ -1,0 +1,10 @@
+{
+  "name": "lamb-yipee",
+  "version": "1.0.0",
+  "description": "Lamb Yipee game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js"
+  }
+}
