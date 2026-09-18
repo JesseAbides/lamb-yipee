@@ -657,15 +657,20 @@ function getAvatarVideo(avatarId, kind = "happy") {
   return (v && v[kind]) || "";
 }
 
+/* ---------------------------------------------------------------
+   triggerAvatarReaction — shows the BOTTOM-RIGHT cheer pop-up.
+   Always uses Yipee's own mascot video (yipee_avatar.mp4)
+   for the pop-up avatar circle. Character emotion sets the
+   bubble color/style only.
+   --------------------------------------------------------------- */
 function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
+  const YIPEE_VIDEO = "assets/yipee_avatar.mp4";
   const pop = document.getElementById("yipeeCheerPop");
   if (!pop) return;
   const bubble = pop.querySelector(".cheer-bubble");
   const avatarBox = document.getElementById("cheerAvatarBox");
   const video = document.getElementById("cheerVideo");
   const svg = document.getElementById("cheerYipeeSvg");
-  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "astro_corgi";
-  const videoSrc = getAvatarVideo(avatarId, kind);
 
   if (bubble) {
     bubble.textContent = text;
@@ -677,9 +682,10 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
     avatarBox.classList.add(kind === "happy" ? "happy" : "oops");
   }
 
-  if (video && videoSrc) {
-    if (video.getAttribute("src") !== videoSrc) {
-      video.src = videoSrc;
+  // Pop-up always shows Yipee's own mascot video
+  if (video) {
+    if (video.getAttribute("src") !== YIPEE_VIDEO) {
+      video.src = YIPEE_VIDEO;
       video.load();
     }
     video.currentTime = 0;
@@ -704,6 +710,38 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
         try { video.pause(); } catch (e) {}
       }
     }, 350);
+  }, ms);
+}
+
+/* ---------------------------------------------------------------
+   triggerPlayerReaction — plays the PLAYER'S CHARACTER reaction
+   video in the bottom-left avatar overlay (#playerReactionOverlay).
+   kind = "happy" | "oops"
+   --------------------------------------------------------------- */
+function triggerPlayerReaction(kind = "happy", ms = 2000) {
+  const overlay = document.getElementById("playerReactionOverlay");
+  const vid = document.getElementById("playerReactionVid");
+  if (!overlay || !vid) return;
+
+  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "astro_corgi";
+  const videoSrc = getAvatarVideo(avatarId, kind);
+  if (!videoSrc) return;
+
+  overlay.classList.remove("hidden", "happy", "oops");
+  overlay.classList.add(kind === "happy" ? "happy" : "oops");
+
+  if (vid.getAttribute("src") !== videoSrc) {
+    vid.src = videoSrc;
+    vid.load();
+  }
+  vid.currentTime = 0;
+  const p = vid.play();
+  if (p !== undefined) p.catch(() => {});
+
+  clearTimeout(overlay._reactionTimer);
+  overlay._reactionTimer = setTimeout(() => {
+    overlay.classList.add("hidden");
+    try { vid.pause(); } catch (e) {}
   }, ms);
 }
 

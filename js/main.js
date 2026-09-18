@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    LAMB YIPEE — main controller
    Screens: menu, verse select, game (single & duo), results
    ============================================================ */
@@ -202,13 +202,38 @@ function startGame(mode, verse, opts = {}) {
       phraseIdx: 0
     }), { spw: seed.spw, hue: seed.hue });
   } else {
+    const rivalAvatar = opts.rivalAvatarId || (kind === "online" ? "capybara" : "pirate");
     G.rival = new Racer(opts.rivalName || "Friend", targetWords, "duo", {
-      avatarId: "pirate",
+      avatarId: rivalAvatar,
       diff: diff,
       prefilledWords: prefilledWords,
       phrases: diffCfg.phrases,
       phraseIdx: 0
     });
+    if (kind === "online") {
+      Online.onMatchAction((data) => {
+        if (data.type === "word_tap") {
+          if (G.rival && !G.rival.done) {
+            G.rival.placed.push(data.word);
+            fillBoardWord(data.index, 2, data.word, false);
+            if (G.rivalRig) G.rivalRig.rejoice();
+            say("#rivalSay", pick(["Nice! ⭐", "Got one! ✨", "Moving fast! 🏃"]), "good");
+            updateBars();
+            if (data.done) {
+              G.rival.done = true;
+              G.rival.doneAt = performance.now();
+              finishRace("rival");
+            }
+          }
+        } else if (data.type === "finish") {
+          if (G.rival) {
+            G.rival.done = true;
+            G.rival.doneAt = performance.now();
+            finishRace("rival");
+          }
+        }
+      });
+    }
   }
 
   G.difficultyConfig = diffCfg;
@@ -418,7 +443,20 @@ function onBubbleTap(word, el, e, player = 1) {
       }
     }
 
-    if (racer.done) finishRace(player === 2 ? "rival" : "you");
+    if (G.rivalKind === "online" && player === 1) {
+      Online.sendMatchAction({
+        type: "word_tap",
+        index: racer.placed.length - 1,
+        word: word,
+        done: racer.done
+      });
+    }
+    if (racer.done) {
+      if (G.rivalKind === "online" && player === 1) {
+        Online.sendMatchAction({ type: "finish", time: performance.now() - G.startAt });
+      }
+      finishRace(player === 2 ? "rival" : "you");
+    }
   } else {
     SFX.wrong();
     el.classList.add("shake");
@@ -725,6 +763,7 @@ function peekHint() {
   }, 4000);
 }
 function quitGame() {
+  if (typeof Online !== "undefined") Online.leaveMatch();
   G.running = false;
   clearInterval(G.cpuTimer);
   clearTimeout(G.cpuTimer);
@@ -940,9 +979,184 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   showScreen("#verseSelect");
 }
 
+
+/* ============================================================
+   ONLINE 1v1 MATCHMAKING & LOBBY UI
+   ============================================================ */
+function openOnlineLobby() {
+  if (typeof Online !== "undefined") {
+    Online.init();
+    updateLobbyUI();
+  }
+  $("#onlineLobbyModal").classList.remove("hidden");
+}
+
+function closeOnlineLobby() {
+  $("#onlineLobbyModal").classList.add("hidden");
+}
+
+function updateLobbyUI(players) {
+  if (typeof Online === "undefined") return;
+  const list = players || Online.getPlayersList();
+  const container = $("#onlinePlayersList");
+  if (!container) return;
+
+  container.innerHTML = "";
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="lobby-empty-state">
+        <div class="empty-emoji">🐑</div>
+        <p style="font-weight:700;margin:4px 0">Looking for other players on the website...</p>
+        <span style="font-size:12.5px;color:var(--ink-soft);display:block;margin:6px 0 12px">
+          You are online and ready! Open another tab to test 1v1, or share the link with a friend!
+        </span>
+        <button class="btn small primary" id="btnEmptyCopyLink">📋 Copy Game Link to Invite</button>
+      </div>
+    `;
+    const copyBtn = $("#btnEmptyCopyLink");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", copyInviteLink);
+    }
+    return;
+  }
+
+  list.forEach(p => {
+    const pet = PET_AVATARS.find(x => x.id === p.avatarId) || PET_AVATARS[0];
+    const imgSrc = getAvatarImg(pet.id);
+    const row = document.createElement("div");
+    row.className = "player-list-row";
+    
+    const isAvail = p.status === "available";
+    const statusText = isAvail ? "🟢 Available" : "⚔️ In a Race";
+    const statusClass = isAvail ? "available" : "in-game";
+
+    row.innerHTML = `
+      <div class="player-row-avatar">
+        ${imgSrc ? `<img src="${imgSrc}" alt="${pet.name}" />` : pet.icon}
+      </div>
+      <div class="player-row-info">
+        <div class="player-row-name">${p.name} <span style="font-size:11.5px;font-weight:normal;opacity:0.8">(${pet.name})</span></div>
+        <div class="player-row-status"><span class="status-badge ${statusClass}">${statusText}</span></div>
+      </div>
+      <div class="player-row-action">
+        <button class="btn small primary challenge-btn" data-id="${p.id}" ${isAvail ? "" : "disabled"}>⚔️ Challenge 1v1</button>
+      </div>
+    `;
+
+    const btn = row.querySelector(".challenge-btn");
+    if (btn && isAvail) {
+      btn.addEventListener("click", () => {
+        send1v1ChallengeTo(p);
+      });
+    }
+
+    container.appendChild(row);
+  });
+}
+
+function send1v1ChallengeTo(targetPlayer) {
+  const diff = G.pendingDifficulty || "medium";
+  const verse = pickVerse(diff);
+
+  const targetNameEl = $("#targetWaitingName");
+  if (targetNameEl) targetNameEl.textContent = `Challenging ${targetPlayer.name}...`;
+
+  const targetImg = $("#targetAvatarImg");
+  const targetIcon = $("#targetAvatarIcon");
+  const pet = PET_AVATARS.find(x => x.id === targetPlayer.avatarId) || PET_AVATARS[0];
+  const imgSrc = getAvatarImg(pet.id);
+  if (targetImg && imgSrc) {
+    targetImg.src = imgSrc;
+    targetImg.style.display = "block";
+    if (targetIcon) targetIcon.style.display = "none";
+  } else if (targetIcon) {
+    if (targetImg) targetImg.style.display = "none";
+    targetIcon.style.display = "block";
+    targetIcon.textContent = pet.icon;
+  }
+
+  const sent = Online.sendChallenge(targetPlayer.id, diff, verse);
+  if (sent) {
+    $("#challengeSentModal").classList.remove("hidden");
+  }
+}
+
+function copyInviteLink() {
+  const url = "https://yipeeverse.vercel.app/index.html";
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      toast("Link copied to clipboard! 📋 Send it to a friend to race 1v1!");
+    }).catch(() => {
+      toast("Share: " + url);
+    });
+  } else {
+    toast("Share: " + url);
+  }
+}
+
+function setupOnlineListeners() {
+  if (typeof Online === "undefined") return;
+
+  // Lobby player presence updates
+  Online.onLobbyChange((players) => {
+    updateLobbyUI(players);
+  });
+
+  // Incoming Challenge Notification
+  Online.onChallengeReceived((ch) => {
+    SFX.go();
+    const pet = PET_AVATARS.find(x => x.id === ch.fromAvatarId) || PET_AVATARS[0];
+    const imgSrc = getAvatarImg(pet.id);
+    const imgEl = $("#challengerAvatarImg");
+    const iconEl = $("#challengerAvatarIcon");
+
+    if (imgEl && imgSrc) {
+      imgEl.src = imgSrc;
+      imgEl.style.display = "block";
+      if (iconEl) iconEl.style.display = "none";
+    } else if (iconEl) {
+      if (imgEl) imgEl.style.display = "none";
+      iconEl.style.display = "block";
+      iconEl.textContent = pet.icon;
+    }
+
+    const nameEl = $("#challengerNameText");
+    if (nameEl) nameEl.textContent = `⚔️ ${ch.fromName} challenged you!`;
+
+    const metaEl = $("#challengeMetaText");
+    if (metaEl) metaEl.textContent = `📖 Bible Verse: ${ch.verseRef} · ${ch.difficulty.toUpperCase()} Mode`;
+
+    // Reset animation bar
+    const bar = $("#challengeTimerFill");
+    if (bar) {
+      bar.style.animation = "none";
+      void bar.offsetWidth;
+      bar.style.animation = "challengeTimer 15s linear forwards";
+    }
+
+    $("#challengeIncomingModal").classList.remove("hidden");
+  });
+
+  // Challenge Response received by Challenger
+  Online.onChallengeResponse((resp) => {
+    $("#challengeSentModal").classList.add("hidden");
+    if (resp.accepted) {
+      toast(`🎉 ${resp.targetName} accepted your challenge! Starting race...`);
+      const info = resp.matchInfo;
+      Online.startOnlineMatch(info.matchId, info.verse.ref, info.verse.text, info.difficulty, resp.targetName, resp.targetAvatarId, true);
+    } else {
+      if (resp.reason === "timeout") {
+        toast(`⏳ ${resp.targetName} did not respond in time.`);
+      } else {
+        toast(`❌ ${resp.targetName} is not available or declined the challenge.`);
+      }
+    }
+  });
+}
 function wire() {
   // menu & profile
   $("#btnSingle").addEventListener("click", () => openLevelSelect("single", "ghost"));
+  $("#btnDuoOnline").addEventListener("click", openOnlineLobby);
   $("#btnDuoCpu").addEventListener("click", () => openLevelSelect("duo", "cpu"));
   $("#btnDuoLocal").addEventListener("click", () => openLevelSelect("duo", "local"));
   $("#btnHow").addEventListener("click", () => $("#howModal").classList.remove("hidden"));
@@ -1007,6 +1221,40 @@ function wire() {
     if (!$("#game").classList.contains("hidden")) repositionBubbles();
   });
 
+  // 1v1 Online Lobby listeners
+  const btnCloseLobby = $("#btnCloseLobby");
+  if (btnCloseLobby) btnCloseLobby.addEventListener("click", closeOnlineLobby);
+  const btnCloseLobbyX = $("#btnCloseLobbyX");
+  if (btnCloseLobbyX) btnCloseLobbyX.addEventListener("click", closeOnlineLobby);
+  const btnRefreshLobby = $("#btnRefreshLobby");
+  if (btnRefreshLobby) btnRefreshLobby.addEventListener("click", () => updateLobbyUI());
+  const btnCopyLink = $("#btnCopyInviteLink");
+  if (btnCopyLink) btnCopyLink.addEventListener("click", copyInviteLink);
+  const btnLobbyBot = $("#btnLobbyPlayBot");
+  if (btnLobbyBot) btnLobbyBot.addEventListener("click", () => { closeOnlineLobby(); openLevelSelect("duo", "cpu"); });
+
+  // Challenge Modals
+  const btnAcceptCh = $("#btnAcceptChallenge");
+  if (btnAcceptCh) btnAcceptCh.addEventListener("click", () => {
+    $("#challengeIncomingModal").classList.add("hidden");
+    Online.respondToChallenge(true);
+  });
+  const btnDeclineCh = $("#btnDeclineChallenge");
+  if (btnDeclineCh) btnDeclineCh.addEventListener("click", () => {
+    $("#challengeIncomingModal").classList.add("hidden");
+    Online.respondToChallenge(false, "declined");
+  });
+  const btnCancelCh = $("#btnCancelChallenge");
+  if (btnCancelCh) btnCancelCh.addEventListener("click", () => {
+    $("#challengeSentModal").classList.add("hidden");
+    Online.cancelOutgoingChallenge();
+  });
+
+  // Setup Online network and listeners
+  if (typeof Online !== "undefined") {
+    Online.init();
+    setupOnlineListeners();
+  }
   refreshStats();
   refreshProfileUI();
 }

@@ -48,8 +48,39 @@ body {
   text-shadow: 0 3px 0 rgba(0,0,0,.15), 0 8px 18px rgba(0,0,0,.12);
   letter-spacing: 1px;
 }
-.subtitle { color: #fff; opacity: .95; margin: 0 0 14px; font-size: clamp(14px, 2.5vw, 18px); text-shadow: 0 2px 0 rgba(0,0,0,.12); }
+.subtitle { color: #fff; opacity: .95; margin: 0 0 8px; font-size: clamp(13px, 2.2vw, 16px); text-shadow: 0 2px 0 rgba(0,0,0,.12); }
 
+/* ---------- menu hero (two-column: video left, title right) ---------- */
+.menu-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 28px);
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 10px;
+  flex-wrap: nowrap;
+}
+.mascot-video {
+  width: clamp(90px, 18vw, 140px);
+  height: clamp(90px, 18vw, 140px);
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.22));
+  animation: floaty 3s ease-in-out infinite;
+  flex-shrink: 0;
+  border: 3px solid rgba(255,255,255,0.4);
+}
+.menu-hero-text {
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+.menu-hero-text .title { margin: 0 0 4px; }
+.menu-hero-text .subtitle { margin: 0; }
+
+/* Legacy .mascot img (fallback) */
 .mascot {
   width: clamp(110px, 22vw, 170px);
   image-rendering: auto;
@@ -57,6 +88,40 @@ body {
   animation: floaty 3s ease-in-out infinite;
 }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ---------- Player reaction video overlay (bottom-left character) ---------- */
+.player-reaction-overlay {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #9ed86b;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+  z-index: 12;
+  background: #fff;
+  transition: border-color .2s, box-shadow .2s;
+  pointer-events: none;
+}
+.player-reaction-overlay.happy {
+  border-color: #5ea83a;
+  box-shadow: 0 0 18px rgba(94,168,58,0.5);
+}
+.player-reaction-overlay.oops {
+  border-color: #e06b8e;
+  box-shadow: 0 0 18px rgba(224,107,142,0.5);
+}
+.player-reaction-vid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 50%;
+}
 
 .btn {
   font-family: inherit;
@@ -1147,3 +1212,291 @@ body {
 }
 
 
+/* ============================================================
+   1v1 ONLINE LOBBY & CHALLENGE STYLES
+   ============================================================ */
+
+/* Menu Online Card with Pulse Badge */
+.mode-card.online-card {
+  border-color: #58b8f0;
+  border-bottom-color: #318cc0;
+  background: linear-gradient(180deg, #ffffff, #f0f8ff);
+}
+.mode-card.online-card:hover {
+  border-color: #389ed8;
+}
+.online-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(88, 184, 240, 0.16);
+  border: 1.5px solid #58b8f0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a6491;
+  margin-top: 8px;
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  animation: pulseGreen 1.8s infinite;
+}
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); background: #2ecc71; }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); background: #2ecc71; }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); background: #2ecc71; }
+}
+
+/* Lobby Modal Card */
+.lobby-modal-card {
+  width: min(620px, 95vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+}
+.lobby-header {
+  text-align: center;
+  border-bottom: 2px dashed #f0d5a8;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+.lobby-header h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: var(--ink);
+}
+.lobby-sub {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+.my-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff8e8;
+  border: 2px solid #f6d89e;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.status-badge.available {
+  background: #eafaf1;
+  color: #27ae60;
+  border: 1.5px solid #2ecc71;
+}
+.status-badge.in-game {
+  background: #fef5e7;
+  color: #d35400;
+  border: 1.5px solid #e67e22;
+}
+
+/* Player List */
+.lobby-player-list-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 180px;
+  max-height: 320px;
+  padding: 4px;
+}
+.lobby-list-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.online-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.player-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border: 2px solid #e8e3d8;
+  border-radius: 14px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.player-list-row:hover {
+  border-color: #58b8f0;
+  transform: translateY(-2px);
+}
+.player-row-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid #ff9db8;
+  overflow: hidden;
+  background: #fffdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.player-row-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.player-row-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.player-row-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-row-status {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.player-row-action {
+  flex-shrink: 0;
+}
+.lobby-empty-state {
+  text-align: center;
+  padding: 24px 16px;
+  background: #fdfaf3;
+  border: 2px dashed #eedfc4;
+  border-radius: 16px;
+}
+.empty-emoji {
+  font-size: 40px;
+  margin-bottom: 6px;
+  animation: floaty 3s ease-in-out infinite;
+}
+.lobby-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+  border-top: 2px dashed #f0d5a8;
+  padding-top: 12px;
+}
+
+/* Challenge Incoming Popup */
+.challenge-popup-card {
+  width: min(440px, 92vw);
+  text-align: center;
+  padding: 24px 20px 20px;
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 4px solid #ff9db8;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.28);
+}
+@keyframes popIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.challenge-badge {
+  display: inline-block;
+  background: linear-gradient(180deg, #ff7b9f, #e0537d);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 8px rgba(224, 83, 125, 0.35);
+}
+.challenger-avatar-box {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #f3a847;
+  overflow: hidden;
+  margin: 0 auto 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+}
+.challenger-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.challenge-desc {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 4px 0 10px;
+}
+.challenge-meta {
+  background: #fdf5e6;
+  border: 2px solid #f6d89e;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 13.5px;
+  color: #7c4a16;
+  margin-bottom: 16px;
+}
+.challenge-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.challenge-timer-bar {
+  width: 100%;
+  height: 5px;
+  background: #f0eae0;
+  border-radius: 999px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+.challenge-timer-fill {
+  height: 100%;
+  width: 100%;
+  background: #e0537d;
+  animation: challengeTimer 15s linear forwards;
+}
+@keyframes challengeTimer {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.challenge-loading-spin {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #f0eae0;
+  border-top-color: #58b8f0;
+  border-radius: 50%;
+  margin: 12px auto;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

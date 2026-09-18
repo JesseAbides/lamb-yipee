@@ -1,4 +1,4 @@
-/* Builds a fully self-contained lamb-yipee.html (inlines CSS + JS + base64 avatars).
+﻿/* Builds a fully self-contained lamb-yipee.html (inlines CSS + JS + base64 avatars).
    Run:  node build.js */
 const fs = require("fs");
 const path = require("path");
@@ -29,6 +29,7 @@ let html = fs.readFileSync("index.src.html", "utf8");
 const css = fs.readFileSync("css/style.css", "utf8");
 const verses = fs.readFileSync("js/verses.js", "utf8");
 const engine = fs.readFileSync("js/engine.js", "utf8");
+const online = fs.readFileSync("js/online.js", "utf8");
 let lamb = fs.readFileSync("js/lamb.js", "utf8");
 const main = fs.readFileSync("js/main.js", "utf8");
 
@@ -56,6 +57,7 @@ for (const [placeholder, dataUri] of Object.entries(avatars)) {
 html = html.replace("/*__CSS__*/", () => css);
 html = html.replace("/*__VERSES__*/", () => verses);
 html = html.replace("/*__ENGINE__*/", () => engine);
+html = html.replace("/*__ONLINE__*/", () => online);
 html = html.replace("/*__LAMB__*/", () => lamb);
 html = html.replace("/*__MAIN__*/", () => main);
 

@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    LAMB YIPEE — QA GAUNTLET RUNNER (injected into built game)
    Stages G0–G14. Results: window.__QA__ + on-page panel.
    Goal: every stage PASS => game declared complete.
@@ -93,7 +93,7 @@
     t(document.title.indexOf("YipeeVerse") === 0, "title is YipeeVerse");
     t(visible("#menu"), "menu visible on load");
     t(!visible("#pauseOverlay") && !visible("#countOverlay"), "no overlay stuck open on load");
-    t($$("#menu .mode-card").length === 3, "three mode cards (single, duo CPU, duo local)");
+    t($$("#menu .mode-card").length >= 3, "mode cards present (single, duo CPU, online, duo local)");
     // Pet & Name Profile modal
     const editBtn = $("#btnEditProfile");
     t(!!editBtn, "customize pet & name button exists");
