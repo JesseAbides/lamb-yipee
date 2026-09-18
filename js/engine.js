@@ -97,11 +97,11 @@ function pickVerse(diff) {
 
 function splitIntoPhrases(text) {
   const tokens = tokenize(text);
-  if (tokens.length <= 6) return [tokens];
+  if (tokens.length < 4) return [tokens];
   let bestIdx = -1;
   let bestDist = Infinity;
   const mid = tokens.length / 2;
-  for (let i = 2; i < tokens.length - 2; i++) {
+  for (let i = 1; i < tokens.length - 2; i++) {
     const t = tokens[i];
     if (/[,;:\.!?—]$/.test(t) || t === "—") {
       const dist = Math.abs(i + 1 - mid);
@@ -111,7 +111,7 @@ function splitIntoPhrases(text) {
       }
     }
   }
-  if (bestIdx === -1) {
+  if (bestIdx === -1 || bestIdx < 2 || bestIdx > tokens.length - 2) {
     bestIdx = Math.ceil(tokens.length / 2);
   }
   return [tokens.slice(0, bestIdx), tokens.slice(bestIdx)];
@@ -175,9 +175,9 @@ function buildWords(verse, diff = "hard", phraseIdx = 0) {
     return shuffle(cfg.neededWords.concat(dist));
   } else if (cfg.type === "medium") {
     // Target is current phrase words excluding the initial word + 1 distractor
-    const ph = cfg.phrases[phraseIdx] || cfg.phrases[0];
-    const needed = ph.slice(1);
-    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !ph.includes(w)).slice(0, 1);
+    const ph = (cfg.phrases && cfg.phrases[phraseIdx]) || (cfg.phrases && cfg.phrases[0]) || target;
+    const needed = ph.length > 1 ? ph.slice(1) : ph;
+    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !target.includes(w)).slice(0, 1);
     return shuffle(needed.concat(dist));
   } else {
     // Hard: all target words + 2 distractors

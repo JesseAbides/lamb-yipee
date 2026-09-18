@@ -750,19 +750,24 @@ body {
   color: #6b4a00;
   animation: pop .25s;
 }
-/* empty slot: clear word guide line proportional to letter length */
+/* empty slot: clean box style as reference for the size of the word (no underline) */
 .board .word.slot {
   display: inline-block;
   min-width: 28px;
-  height: 22px;
-  line-height: 20px;
-  background: rgba(184, 134, 11, 0.09);
-  border-bottom: 2.5px dashed #c4962c;
-  border-radius: 4px;
+  height: 24px;
+  line-height: 22px;
+  background: rgba(212, 167, 66, 0.12);
+  border: 1.8px solid rgba(196, 150, 44, 0.38);
+  border-radius: 8px;
   color: transparent;
   vertical-align: middle;
   margin: 0 3px 5px 0;
   box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+.board .word.slot:hover {
+  background: rgba(212, 167, 66, 0.20);
+  border-color: rgba(196, 150, 44, 0.60);
 }
 .board .punct-guide {
   display: inline-block;
@@ -2344,11 +2349,11 @@ function pickVerse(diff) {
 
 function splitIntoPhrases(text) {
   const tokens = tokenize(text);
-  if (tokens.length <= 6) return [tokens];
+  if (tokens.length < 4) return [tokens];
   let bestIdx = -1;
   let bestDist = Infinity;
   const mid = tokens.length / 2;
-  for (let i = 2; i < tokens.length - 2; i++) {
+  for (let i = 1; i < tokens.length - 2; i++) {
     const t = tokens[i];
     if (/[,;:\.!?—]$/.test(t) || t === "—") {
       const dist = Math.abs(i + 1 - mid);
@@ -2358,7 +2363,7 @@ function splitIntoPhrases(text) {
       }
     }
   }
-  if (bestIdx === -1) {
+  if (bestIdx === -1 || bestIdx < 2 || bestIdx > tokens.length - 2) {
     bestIdx = Math.ceil(tokens.length / 2);
   }
   return [tokens.slice(0, bestIdx), tokens.slice(bestIdx)];
@@ -2422,9 +2427,9 @@ function buildWords(verse, diff = "hard", phraseIdx = 0) {
     return shuffle(cfg.neededWords.concat(dist));
   } else if (cfg.type === "medium") {
     // Target is current phrase words excluding the initial word + 1 distractor
-    const ph = cfg.phrases[phraseIdx] || cfg.phrases[0];
-    const needed = ph.slice(1);
-    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !ph.includes(w)).slice(0, 1);
+    const ph = (cfg.phrases && cfg.phrases[phraseIdx]) || (cfg.phrases && cfg.phrases[0]) || target;
+    const needed = ph.length > 1 ? ph.slice(1) : ph;
+    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !target.includes(w)).slice(0, 1);
     return shuffle(needed.concat(dist));
   } else {
     // Hard: all target words + 2 distractors
@@ -4307,17 +4312,30 @@ function onBubbleTap(word, el, e, player = 1) {
 }
 
 function advanceToPhraseTwo(player = 1) {
+  if (!G.diffCfg || !G.diffCfg.phrases || G.diffCfg.phrases.length < 2) return;
   G.phraseIdx = 1;
   const p0Len = G.diffCfg.phrases[0].length;
-  const p1Word0 = G.diffCfg.phrases[1][0];
+  const p1 = G.diffCfg.phrases[1];
+  const p1Word0 = p1[0];
 
+  // Reveal initial word of phrase 2 on board
   fillBoardWord(p0Len, 1, p1Word0, true);
-  if (G.you.placed.length === p0Len) {
+  if (G.you && G.you.placed.length === p0Len) {
     G.you.placed.push(p1Word0);
+    if (G.you.placed.length === G.you.target.length) {
+      G.you.done = true;
+      G.you.doneAt = performance.now();
+      finishRace("you");
+      return;
+    }
   }
   if (G.rival && G.rival.placed.length === p0Len) {
     fillBoardWord(p0Len, 2, p1Word0, true);
     G.rival.placed.push(p1Word0);
+    if (G.rival.placed.length === G.rival.target.length) {
+      G.rival.done = true;
+      G.rival.doneAt = performance.now();
+    }
   }
 
   const phraseChip = $("#hudPhrase");
@@ -4356,6 +4374,7 @@ function advanceToPhraseTwo(player = 1) {
     addSet(words, 0, 1);
   }
   repositionBubbles();
+  setTimeout(repositionBubbles, 60);
   updateBars();
 }
 

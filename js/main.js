@@ -520,17 +520,30 @@ function onBubbleTap(word, el, e, player = 1) {
 }
 
 function advanceToPhraseTwo(player = 1) {
+  if (!G.diffCfg || !G.diffCfg.phrases || G.diffCfg.phrases.length < 2) return;
   G.phraseIdx = 1;
   const p0Len = G.diffCfg.phrases[0].length;
-  const p1Word0 = G.diffCfg.phrases[1][0];
+  const p1 = G.diffCfg.phrases[1];
+  const p1Word0 = p1[0];
 
+  // Reveal initial word of phrase 2 on board
   fillBoardWord(p0Len, 1, p1Word0, true);
-  if (G.you.placed.length === p0Len) {
+  if (G.you && G.you.placed.length === p0Len) {
     G.you.placed.push(p1Word0);
+    if (G.you.placed.length === G.you.target.length) {
+      G.you.done = true;
+      G.you.doneAt = performance.now();
+      finishRace("you");
+      return;
+    }
   }
   if (G.rival && G.rival.placed.length === p0Len) {
     fillBoardWord(p0Len, 2, p1Word0, true);
     G.rival.placed.push(p1Word0);
+    if (G.rival.placed.length === G.rival.target.length) {
+      G.rival.done = true;
+      G.rival.doneAt = performance.now();
+    }
   }
 
   const phraseChip = $("#hudPhrase");
@@ -569,6 +582,7 @@ function advanceToPhraseTwo(player = 1) {
     addSet(words, 0, 1);
   }
   repositionBubbles();
+  setTimeout(repositionBubbles, 60);
   updateBars();
 }
 

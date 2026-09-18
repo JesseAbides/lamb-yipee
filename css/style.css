@@ -742,19 +742,24 @@ body {
   color: #6b4a00;
   animation: pop .25s;
 }
-/* empty slot: clear word guide line proportional to letter length */
+/* empty slot: clean box style as reference for the size of the word (no underline) */
 .board .word.slot {
   display: inline-block;
   min-width: 28px;
-  height: 22px;
-  line-height: 20px;
-  background: rgba(184, 134, 11, 0.09);
-  border-bottom: 2.5px dashed #c4962c;
-  border-radius: 4px;
+  height: 24px;
+  line-height: 22px;
+  background: rgba(212, 167, 66, 0.12);
+  border: 1.8px solid rgba(196, 150, 44, 0.38);
+  border-radius: 8px;
   color: transparent;
   vertical-align: middle;
   margin: 0 3px 5px 0;
   box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+.board .word.slot:hover {
+  background: rgba(212, 167, 66, 0.20);
+  border-color: rgba(196, 150, 44, 0.60);
 }
 .board .punct-guide {
   display: inline-block;
