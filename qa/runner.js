@@ -224,36 +224,21 @@
     $("#resMenu").click();
   });
 
-  /* ================= G6 — duo local split hill + P2 keyboard ================= */
-  stage("G6 duo local: split hill & P2 keys", async t => {
-    await gotoRace("#btnDuoLocal", "hard");
-    t(G.mode === "duo" && G.rivalKind === "local", "duo local mode active");
-    t(visible("#board2"), "second board visible for P2");
-    t($$("#verseFlow .word.slot").length > 0 && $$("#verseFlow2 .word.slot").length > 0, "both boards have slots");
-    const own1 = G.bubbles.filter(b => b.owner === 1), own2 = G.bubbles.filter(b => b.owner === 2);
-    t(own1.length > 0 && own2.length > 0, "each player owns word cards");
-    // halves are disjoint (P1 left, P2 right)
-    const hill = $("#hillArea").getBoundingClientRect();
-    const mid = hill.left + hill.width / 2;
-    t(own1.every(b => b.el.getBoundingClientRect().right <= mid + 12), "P1 cards all on left half");
-    t(own2.every(b => b.el.getBoundingClientRect().left >= mid - 12), "P2 cards all on right half");
-    // P2 keyboard: press 1 → first of P2's untaken cards is tried
-    const b2 = G.bubbles.filter(x => !x.taken && x.owner === 2);
-    const firstWord = b2[0].word;
-    const want = G.rival.target[0];
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "1" }));
-    if (firstWord === want) t(G.rival.placed.length === 1, "P2 key '1' places correct word on board 2");
-    else t(G.rival.mistakes === 1, "P2 key '1' registers wrong-word attempt");
-    // P1 pointer taps still work on own half
-    const w1 = G.you.target[0];
-    tapBubble(w1, 1);
-    t(G.you.placed.length === 1, "P1 tap places word on board 1");
-    // both can finish
-    for (const w of G.rival.target.slice()) { let g = 0; while (!G.rival.done && g++ < 14) { const b = G.bubbles.find(x => !x.taken && x.owner === 2 && x.word === w); if (b) b.el.dispatchEvent(new (window.PointerEvent || MouseEvent)("pointerdown", { bubbles: true })); if (G.rival.placed.length && G.rival.placed[G.rival.placed.length - 1] === w) break; await sleep(280); } }
-    await playVerse(240);
-    await until(() => visible("#results"), 5000);
-    t(visible("#results"), "duo local race completes and shows winner");
-    $("#resMenu").click();
+  /* ================= G6 — 1v1 Online Lobby & presence ================= */
+  stage("G6 1v1 Online Lobby & matchmaking", async t => {
+    showScreen("#menu");
+    const btnOnline = $("#btnDuoOnline");
+    t(!!btnOnline, "1v1 Online Mode button exists on menu");
+    btnOnline.click();
+    await until(() => visible("#onlineLobbyModal"), 2000);
+    t(visible("#onlineLobbyModal"), "1v1 Online Lobby opens");
+    t(typeof Online !== "undefined", "Online network engine initialized");
+    t($("#myStatusBadge").textContent.indexOf("Available") >= 0, "player marked Available in lobby");
+    const btnCloseLobby = $("#btnCloseLobby");
+    t(!!btnCloseLobby, "close lobby button exists");
+    btnCloseLobby.click();
+    await until(() => !visible("#onlineLobbyModal"), 1500);
+    t(!visible("#onlineLobbyModal"), "online lobby closes");
   });
 
   /* ================= G7 — rigged lamb: alive, rejoice, sad ================= */

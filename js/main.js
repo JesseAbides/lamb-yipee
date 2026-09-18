@@ -965,9 +965,9 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   const grid = $("#levelGrid");
   grid.innerHTML = "";
   const cards = [
-    { diff: "easy",   icon: "🌟",       name: "Easy",   time: "40s", desc: "⏱️ 40s target · 50% pre-filled board · 1 trick word!" },
-    { diff: "medium", icon: "🌟🌟",     name: "Medium", time: "50s", desc: "⏱️ 50s target · Phrase-by-phrase · 1 trick word per phrase!" },
-    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   time: "60s", desc: "⏱️ 60s target · Full verse from memory · 2+ trick words!" }
+    { diff: "easy",   icon: "🌟",       name: "Easy",   time: "60s", desc: "⏱️ 60s target · 50% pre-filled board · 1 trick word!" },
+    { diff: "medium", icon: "🌟🌟",     name: "Medium", time: "80s", desc: "⏱️ 80s target · Phrase-by-phrase · 1 trick word per phrase!" },
+    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   time: "100s", desc: "⏱️ 100s target · Full verse from memory · 2+ trick words!" }
   ];
   cards.forEach(c => {
     const card = document.createElement("div");
@@ -1168,7 +1168,7 @@ function wire() {
   $("#btnSingle").addEventListener("click", () => openLevelSelect("single", "ghost"));
   $("#btnDuoOnline").addEventListener("click", openOnlineLobby);
   $("#btnDuoCpu").addEventListener("click", () => openLevelSelect("duo", "cpu"));
-  $("#btnDuoLocal").addEventListener("click", () => openLevelSelect("duo", "local"));
+  const btnLocal = $("#btnDuoLocal"); if (btnLocal) btnLocal.addEventListener("click", () => openLevelSelect("duo", "local"));
   $("#btnHow").addEventListener("click", () => $("#howModal").classList.remove("hidden"));
   $("#howClose").addEventListener("click", () => $("#howModal").classList.add("hidden"));
 
