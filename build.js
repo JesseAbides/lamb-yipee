@@ -1,13 +1,51 @@
-/* Builds a fully self-contained lamb-yipee.html (inlines CSS + JS).
+/* Builds a fully self-contained lamb-yipee.html (inlines CSS + JS + base64 avatars).
    Run:  node build.js */
 const fs = require("fs");
+const path = require("path");
+
+function copyDirRecursive(src, dest) {
+  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+function toBase64Uri(filePath, mime = "image/jpeg") {
+  if (fs.existsSync(filePath)) {
+    const b64 = fs.readFileSync(filePath).toString("base64");
+    return `data:${mime};base64,${b64}`;
+  }
+  return "";
+}
 
 let html = fs.readFileSync("index.src.html", "utf8");
 const css = fs.readFileSync("css/style.css", "utf8");
 const verses = fs.readFileSync("js/verses.js", "utf8");
 const engine = fs.readFileSync("js/engine.js", "utf8");
-const lamb = fs.readFileSync("js/lamb.js", "utf8");
+let lamb = fs.readFileSync("js/lamb.js", "utf8");
 const main = fs.readFileSync("js/main.js", "utf8");
+
+// Inline avatar base64 images into lamb.js
+const avatars = {
+  "/*__IMG_CAPYBARA__*/": toBase64Uri("assets/avatars/capybara.jpg"),
+  "/*__IMG_NINJA_FOX__*/": toBase64Uri("assets/avatars/ninja_fox.jpg"),
+  "/*__IMG_SCHOLAR_TURTLE__*/": toBase64Uri("assets/avatars/scholar_turtle.jpg"),
+  "/*__IMG_GAMER_PANDA__*/": toBase64Uri("assets/avatars/gamer_panda.jpg"),
+  "/*__IMG_BARISTA_OTTER__*/": toBase64Uri("assets/avatars/barista_otter.jpg")
+};
+
+for (const [placeholder, dataUri] of Object.entries(avatars)) {
+  if (dataUri) {
+    lamb = lamb.replace(placeholder, () => dataUri);
+  }
+}
 
 html = html.replace("/*__CSS__*/", () => css);
 html = html.replace("/*__VERSES__*/", () => verses);
@@ -25,13 +63,9 @@ if (!fs.existsSync("public")) {
 fs.writeFileSync("public/index.html", html);
 fs.writeFileSync("public/lamb-yipee.html", html);
 
-// Copy assets if directory exists
+// Copy assets recursively to public/assets
 if (fs.existsSync("assets")) {
-  const pubAssets = "public/assets";
-  if (!fs.existsSync(pubAssets)) fs.mkdirSync(pubAssets, { recursive: true });
-  for (const f of fs.readdirSync("assets")) {
-    fs.copyFileSync("assets/" + f, pubAssets + "/" + f);
-  }
+  copyDirRecursive("assets", "public/assets");
 }
 
 console.log("Built lamb-yipee.html & index.html (root + public):", (html.length / 1024).toFixed(1) + " KB");

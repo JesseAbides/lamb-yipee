@@ -211,7 +211,20 @@ function startGame(mode, verse, opts = {}) {
     });
   }
 
-  // Setup board slots with pre-filled indicators
+  G.difficultyConfig = diffCfg;
+  G.currentPhraseIdx = 0;
+  G.totalPhrases = diffCfg.phrases.length;
+  G.timeLimit = diffCfg.timeLimit || (diff === "easy" ? 20 : diff === "medium" ? 30 : 40);
+  G.timeLimitMs = G.timeLimit * 1000;
+  G.urgentShoutDone = false;
+
+  const timerEl = $("#timer");
+  if (timerEl) {
+    timerEl.textContent = `⏱️ ${G.timeLimit}.0s`;
+    timerEl.classList.remove("urgent");
+  }
+
+  // Pre-fill board slots if difficulty calls for it (Easy mode has 50% pre-filled)
   const buildBoard = (flowEl, refEl) => {
     flowEl.innerHTML = "";
     targetWords.forEach((word, i) => {
@@ -285,7 +298,7 @@ function startGame(mode, verse, opts = {}) {
 
   const petInfo = PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
   const sideTag = $("#playerSideTag");
-  if (sideTag) sideTag.textContent = `${petInfo.icon} ${G.you.name}`;
+  if (sideTag) sideTag.textContent = `${petInfo.icon} ${petInfo.name} (${G.you.name})`;
 
   if (!G.rivalRig && mode === "duo") {
     G.rivalRig = rigLamb($("#rivalDot"), { id: "r", avatarId: "pirate", wool: "#ffe4ef", woolShade: "#f3c6d6", face: "#ffe0ea", tint: "#f087ab", dark: "#5a4632" });
@@ -592,8 +605,28 @@ function repositionBubbles() {
 function tick() {
   if (!G.running) return;
   if (!G.paused && !G.you.done) {
-    const t = performance.now() - G.startAt;
-    $("#timer").textContent = (t / 1000).toFixed(1) + "s";
+    const elapsed = performance.now() - G.startAt;
+    const remainingMs = Math.max(0, G.timeLimitMs - elapsed);
+    const timerEl = $("#timer");
+    if (timerEl) {
+      timerEl.textContent = `⏱️ ${(remainingMs / 1000).toFixed(1)}s`;
+      if (remainingMs <= 5000) {
+        timerEl.classList.add("urgent");
+        if (!G.urgentShoutDone) {
+          G.urgentShoutDone = true;
+          try { SFX.wrong(); } catch (e) {}
+          triggerYipeeCheer("Hurry! 5 seconds left! ⚡", "bad", 1800);
+        }
+      } else {
+        timerEl.classList.remove("urgent");
+      }
+    }
+
+    if (remainingMs <= 0) {
+      finishRace("timeout");
+      return;
+    }
+
     if (G.rivalKind === "ghost" && G.rival && !G.rival.done) {
       // show rival progress % in chip
       $("#rivalChip").textContent = `🐏 ${G.rival.name}: ${Math.round(G.rival.progress * 100)}%`;
@@ -662,7 +695,7 @@ function quitGame() {
    ============================================================ */
 function finishRace(winner) {
   if (G.finished) return;              // already finished this race
-  if (!G.running && winner !== "you") return;
+  if (!G.running && winner !== "you" && winner !== "timeout") return;
   G.finished = true;
   G.running = false;
   clearInterval(G.cpuTimer);
@@ -671,30 +704,45 @@ function finishRace(winner) {
 
   const youMs = G.you.done ? G.you.doneAt - G.startAt : null;
   const rivalMs = G.rival && G.rival.done ? G.rival.doneAt - G.startAt : null;
+  const isTimeout = winner === "timeout";
   const youWon = winner === "you";
 
   // stats
-  const stars = youMs != null ? starsOf(youMs) : 0;
+  const stars = youMs != null ? starsOf(youMs, G.timeLimit) : 0;
   Store.addTotals({ stars, win: youWon ? 1 : 0, race: 1 });
   let newBest = false;
   if (youMs != null) newBest = Store.setBest(G.verse.ref, youMs);
 
-  setTimeout(() => showResults(youWon, youMs, rivalMs, stars, newBest), 700);
-  if (youWon) { SFX.finish(); confettiBurst(); if (G.yipeeRig) G.yipeeRig.rejoice(1300); }
-  else { SFX.lose(); if (G.yipeeRig) G.yipeeRig.sad(1100); }
+  setTimeout(() => showResults(winner, youMs, rivalMs, stars, newBest), 700);
+  if (youWon) {
+    SFX.finish();
+    confettiBurst();
+    if (G.yipeeRig) G.yipeeRig.rejoice(1300);
+  } else if (isTimeout) {
+    SFX.lose();
+    if (G.yipeeRig) G.yipeeRig.sad(1200);
+    triggerYipeeCheer("Time's up! Don't give up, try again! ⏰", "bad", 2500);
+  } else {
+    SFX.lose();
+    if (G.yipeeRig) G.yipeeRig.sad(1100);
+  }
 }
 
-function showResults(youWon, youMs, rivalMs, stars, newBest) {
+function showResults(winner, youMs, rivalMs, stars, newBest) {
+  const isTimeout = winner === "timeout";
+  const youWon = winner === "you";
+
   $("#resTitle").textContent =
+    isTimeout ? "Time's Up! ⏰" :
     G.mode === "duo" ? (youWon ? `${G.you.name} wins! 🎉` : `${G.rival.name} wins! 🐏`) :
     youWon ? "Verse complete! 🎉" : "So close! 🐑";
   $("#resVerse").textContent = "📖 " + G.verse.ref + " · NIV — " + G.verse.text;
-  $("#resTime").textContent = youMs != null ? fmt(youMs) : "DNF";
-  $("#resGrade").textContent = youMs != null ? gradeOf(youMs) : "Keep practicing!";
+  $("#resTime").textContent = isTimeout ? `Time's Up (Limit: ${G.timeLimit}s)` : (youMs != null ? fmt(youMs) : "DNF");
+  $("#resGrade").textContent = isTimeout ? "Out of Time ⏳" : (youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!");
   $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars));
   $("#resBest").textContent = newBest ? "🏆 NEW PERSONAL BEST!" :
     ("Best: " + fmt(Store.bestFor(G.verse.ref)));
-  $("#resMistakes").textContent = `Mistakes: ${G.you.mistakes} · Taps: ${G.you.taps}`;
+  $("#resMistakes").textContent = `Mistakes: ${G.you.mistakes} · Taps: ${G.you.taps} · Limit: ${G.timeLimit}s`;
 
   // leaderboard list
   const lb = $("#resBoard");
@@ -745,15 +793,28 @@ function refreshProfileUI() {
   const pet = PET_AVATARS.find(p => p.id === prof.avatarId) || PET_AVATARS[0];
   const nameEl = $("#menuPlayerName");
   const iconEl = $("#menuAvatarIcon");
+  const imgEl = $("#menuAvatarImg");
   if (nameEl) nameEl.textContent = prof.name || "You";
-  if (iconEl) iconEl.textContent = pet.icon;
+  
+  const imgSrc = getAvatarImg(pet.id);
+  if (imgEl && imgSrc) {
+    imgEl.src = imgSrc;
+    imgEl.style.display = "block";
+    if (iconEl) iconEl.style.display = "none";
+  } else {
+    if (imgEl) imgEl.style.display = "none";
+    if (iconEl) {
+      iconEl.style.display = "block";
+      iconEl.textContent = pet.icon;
+    }
+  }
 }
 
-let selectedAvatarId = "flora";
+let selectedAvatarId = "capybara";
 
 function openProfileModal() {
   const prof = Store.profile();
-  selectedAvatarId = prof.avatarId || "flora";
+  selectedAvatarId = prof.avatarId || "capybara";
   const input = $("#playerNameInput");
   if (input) input.value = prof.name || "You";
 
@@ -762,8 +823,13 @@ function openProfileModal() {
   PET_AVATARS.forEach(pet => {
     const card = document.createElement("div");
     card.className = "avatar-card" + (pet.id === selectedAvatarId ? " sel" : "");
+    const imgSrc = getAvatarImg(pet.id);
+    const mediaHtml = imgSrc
+      ? `<div class="av-img-wrap"><img class="av-img" src="${imgSrc}" alt="${pet.name}" /><span class="av-badge">${pet.icon}</span></div>`
+      : `<div class="av-icon">${pet.icon}</div>`;
+
     card.innerHTML = `
-      <div class="av-icon">${pet.icon}</div>
+      ${mediaHtml}
       <div class="av-name">${pet.name}</div>
       <div class="av-role">${pet.role}</div>
       <div class="av-desc">${pet.desc}</div>
@@ -808,16 +874,16 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   const grid = $("#levelGrid");
   grid.innerHTML = "";
   const cards = [
-    { diff: "easy",   icon: "🌟",       name: "Easy",   desc: "50% pre-filled board · 1 trick word!" },
-    { diff: "medium", icon: "🌟🌟",     name: "Medium", desc: "Phrase-by-phrase · 1 trick word per phrase!" },
-    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   desc: "Full verse from memory · 2+ trick words!" }
+    { diff: "easy",   icon: "🌟",       name: "Easy",   time: "20s", desc: "⏱️ 20s to solve · 50% pre-filled board · 1 trick word!" },
+    { diff: "medium", icon: "🌟🌟",     name: "Medium", time: "30s", desc: "⏱️ 30s to solve · Phrase-by-phrase · 1 trick word per phrase!" },
+    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   time: "40s", desc: "⏱️ 40s to solve · Full verse from memory · 2+ trick words!" }
   ];
   cards.forEach(c => {
     const card = document.createElement("div");
     card.className = "verse-card";
-    card.innerHTML = `<div class="ref">${c.icon} ${c.name}</div>
+    card.innerHTML = `<div class="ref">${c.icon} ${c.name} <span class="time-pill">⏱️ ${c.time}</span></div>
       <div class="snippet">${c.desc}</div>
-      <div class="meta">A random verse is dealt — no peeking! 🙈</div>`;
+      <div class="meta">A random verse is dealt — beat the clock! ⏰</div>`;
     card.addEventListener("click", () => {
       const verse = pickVerse(c.diff);
       G.pendingDifficulty = c.diff;

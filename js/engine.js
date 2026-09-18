@@ -117,16 +117,25 @@ function splitIntoPhrases(text) {
   return [tokens.slice(0, bestIdx), tokens.slice(bestIdx)];
 }
 
+const TIME_LIMITS = {
+  easy: 20,
+  medium: 30,
+  hard: 40
+};
+
 function getDifficultyConfig(diff, verse) {
   const tokens = tokenize(verse.text);
   const total = tokens.length;
+  const timeLimit = TIME_LIMITS[diff] || 30;
+
   if (diff === "easy") {
-    // Easy: 50% on board, 50% to be added, 1 incorrect word
+    // Easy: 20 seconds, 50% on board, 50% to be added, 1 incorrect word
     const prefilledCount = Math.floor(total * 0.5);
     const prefilled = tokens.slice(0, prefilledCount);
     const needed = tokens.slice(prefilledCount);
     return {
       type: "easy",
+      timeLimit: 20,
       prefilledIndices: Array.from({ length: prefilledCount }, (_, i) => i),
       prefilledWords: prefilled,
       neededWords: needed,
@@ -134,17 +143,19 @@ function getDifficultyConfig(diff, verse) {
       phrases: [tokens]
     };
   } else if (diff === "medium") {
-    // Medium: phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
+    // Medium: 30 seconds, phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
     const phrases = splitIntoPhrases(verse.text);
     return {
       type: "medium",
+      timeLimit: 30,
       phrases: phrases,
       distractorCount: 1
     };
   } else {
-    // Hard: complete whole verse, 0 revealed, 2 incorrect words
+    // Hard: 40 seconds, complete whole verse, 0 revealed, 2 incorrect words
     return {
       type: "hard",
+      timeLimit: 40,
       prefilledIndices: [],
       prefilledWords: [],
       neededWords: tokens,
@@ -214,9 +225,24 @@ class Racer {
 }
 
 /* ---------- scoring ---------- */
-/* grade/star bands are in SECONDS; call sites pass milliseconds */
-const gradeOf = (ms) => { const t = ms / 1000; return t < 20 ? "RADIANT ✨" : t < 30 ? "GOLDEN 🥇" : t < 45 ? "BRIGHT 🥈" : "STEADY 🥉"; };
-const starsOf = (ms) => { const t = ms / 1000; return t < 20 ? 3 : t < 30 ? 2 : 1; };
+/* grade/star bands are in SECONDS; optional timeLimitSec scales dynamically */
+const gradeOf = (ms, timeLimitSec) => {
+  const t = ms / 1000;
+  if (!timeLimitSec) {
+    return t < 20 ? "RADIANT ✨" : t < 30 ? "GOLDEN 🥇" : t < 45 ? "BRIGHT 🥈" : "STEADY 🥉";
+  }
+  const lim = timeLimitSec;
+  return t <= lim * 0.55 ? "RADIANT ✨" : t <= lim * 0.8 ? "GOLDEN 🥇" : t <= lim ? "BRIGHT 🥈" : "TIME'S UP ⏱️";
+};
+
+const starsOf = (ms, timeLimitSec) => {
+  const t = ms / 1000;
+  if (!timeLimitSec) {
+    return t < 20 ? 3 : t < 30 ? 2 : 1;
+  }
+  const lim = timeLimitSec;
+  return t <= lim * 0.55 ? 3 : t <= lim * 0.8 ? 2 : 1;
+};
 
 /* ---------- storage ---------- */
 const Store = {
@@ -252,7 +278,7 @@ const Store = {
   },
   profile() {
     const d = this.load();
-    return d.profile || { name: "You", avatarId: "flora" };
+    return d.profile || { name: "You", avatarId: "capybara" };
   },
   setProfile(prof) {
     const d = this.load();
