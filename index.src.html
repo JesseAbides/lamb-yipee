@@ -17,7 +17,21 @@
   <h1 class="title">🐑 Lamb Yipee</h1>
   <p class="subtitle">Scripture — Word for Word · NIV</p>
 
+  <div class="profile-strip" id="profileStrip">
+    <div class="profile-card">
+      <div class="profile-avatar-wrap">
+        <span class="profile-avatar-icon" id="menuAvatarIcon">🌸</span>
+      </div>
+      <div class="profile-text">
+        <span class="profile-title">Player</span>
+        <span class="profile-name" id="menuPlayerName">You</span>
+      </div>
+      <button class="btn small profile-edit-btn" id="btnEditProfile">Customize Pet & Name 🐾</button>
+    </div>
+  </div>
+
   <div class="mode-cards">
+
     <div class="mode-card" id="btnSingle">
       <div class="emoji">🐑</div>
       <h3>Single Mode</h3>
@@ -66,6 +80,7 @@
 <section id="game" class="screen hidden">
   <div class="hud">
     <span class="chip" id="hudRef">—</span>
+    <span class="chip phrase-chip" id="hudPhrase" style="display:none">Phrase 1/2</span>
     <span class="chip timer" id="timer">0.0s</span>
     <span class="chip" id="rivalChip" style="display:none"></span>
     <span class="spacer"></span>
@@ -78,10 +93,11 @@
       <div class="sun"></div>
       <div class="hill"></div>
 
-      <!-- Yipee stands on the left and reacts to taps -->
+      <!-- Player avatar stands on the left and reacts to taps -->
       <div class="lamb-side left">
         <div class="say" id="yipeeSay"></div>
         <div id="yipee" class="lamb-anchor"></div>
+        <div class="player-tag" id="playerSideTag">🌸 You</div>
       </div>
 
       <!-- Rival lamb stands on the right (duo modes) -->
@@ -160,19 +176,75 @@
     <h2>❓ How to Play</h2>
     <ol>
       <li>A <b>verse is scrambled into word bubbles on the hill</b> — plus a few trick words!</li>
-      <li><b>Tap the words in the correct order</b>, one at a time. Yipee jumps for joy on every correct word!</li>
+      <li><b>Tap the words in the correct order</b>, one at a time. Your pet jumps for joy on every correct word!</li>
+      <li><b>Yipee the mascot</b> pops out to cheer you on during streaks and big milestones!</li>
       <li>Each correct tap <b>flies onto the scripture board</b> until the verse is complete.</li>
-      <li>Wrong word? Yipee gets <b>dizzy and stunned for a moment</b> — choose carefully!</li>
+      <li>Wrong word? Your pet gets <b>dizzy and stunned for a moment</b> — choose carefully!</li>
       <li>💡 <b>Peek</b> highlights the next word on the board (then cools down).</li>
-      <li><b>Single:</b> your time is compared with other players on the leaderboard.</li>
-      <li><b>Duo 1v1:</b> race a rival! Same screen: your lamb owns the <b>left hill</b>, the rival owns the <b>right hill</b> — tap your own bubbles (or P2 presses <span class="kbd">1</span>–<span class="kbd">9</span>). CPU mode: beat the rival lamb up the hill!</li>
-      <li>🤫 <b>You never choose the verse</b> — pick a difficulty and a random verse is dealt. Recall it from the reference alone!
+      <li><b>Game Difficulties:</b>
+        <div style="font-size:13px;line-height:1.5;margin-top:4px">
+          🌟 <b>Easy:</b> 50% of the verse is already filled in! Tap the remaining half (1 trick word).<br>
+          🌟🌟 <b>Medium:</b> Phrase-by-phrase! Each phrase has its initial word revealed (1 trick word).<br>
+          🌟🌟🌟 <b>Hard:</b> Full verse from memory! 0 words revealed, 2+ trick words!
+        </div>
+      </li>
     </ol>
     <button class="btn primary" id="howClose">Got it!</button>
   </div>
 </div>
 
+<!-- ================= CUSTOMIZE PET & NAME MODAL ================= -->
+<div id="profileModal" class="modal-back hidden">
+  <div class="modal profile-modal-card">
+    <h2>🐾 Customize Pet & Name</h2>
+    <p style="margin:2px 0 12px;color:var(--ink-soft);font-size:14px">Choose your cute animal avatar and racer name!</p>
+
+    <div class="input-group">
+      <label for="playerNameInput" style="font-weight:700;display:block;margin-bottom:6px">Your Name:</label>
+      <input type="text" id="playerNameInput" maxlength="14" placeholder="Enter your name..." value="You">
+    </div>
+
+    <div style="font-weight:700;margin:12px 0 8px;text-align:left">Choose Your Pet Character:</div>
+    <div class="avatar-grid" id="avatarGrid"></div>
+
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
+      <button class="btn primary" id="btnSaveProfile">Save & Play! 🌟</button>
+      <button class="btn" id="btnCloseProfile">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= YIPEE GUEST MASCOT CHEERLEADER POP-UP ================= -->
+<div id="yipeeCheerPop" class="yipee-cheer-pop hidden">
+  <div class="cheer-bubble">YIPEE! You've got this! ✨</div>
+  <div class="cheer-avatar">
+    <div class="cheer-yipee-svg">
+      <svg viewBox="0 0 100 90" width="84" height="76" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="32" fill="#fffdf6"/>
+        <circle cx="34" cy="40" r="14" fill="#fdf6e8"/>
+        <circle cx="66" cy="40" r="14" fill="#fdf6e8"/>
+        <circle cx="50" cy="28" r="15" fill="#fdf6e8"/>
+        <ellipse cx="50" cy="52" rx="20" ry="17" fill="#ffedda"/>
+        <!-- ears -->
+        <ellipse cx="24" cy="46" rx="9" ry="6" fill="#ffedda" transform="rotate(-15 24 46)"/>
+        <ellipse cx="76" cy="46" rx="9" ry="6" fill="#ffedda" transform="rotate(15 76 46)"/>
+        <!-- eyes -->
+        <circle cx="43" cy="50" r="3.5" fill="#3a2412"/>
+        <circle cx="42" cy="48.5" r="1.2" fill="#fff"/>
+        <circle cx="57" cy="50" r="3.5" fill="#3a2412"/>
+        <circle cx="56" cy="48.5" r="1.2" fill="#fff"/>
+        <!-- smile -->
+        <path d="M46 59 Q50 64 54 59" stroke="#8e3a2c" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- blush -->
+        <circle cx="37" cy="55" r="3.5" fill="#ffb0ba" opacity=".7"/>
+        <circle cx="63" cy="55" r="3.5" fill="#ffb0ba" opacity=".7"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
+
 
 <script>/*__VERSES__*/</script>
 <script>/*__ENGINE__*/</script>

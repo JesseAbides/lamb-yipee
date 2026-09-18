@@ -95,28 +95,104 @@ function pickVerse(diff) {
   return pick(versePool(diff));
 }
 
-function buildWords(verse) {
+function splitIntoPhrases(text) {
+  const tokens = tokenize(text);
+  if (tokens.length <= 6) return [tokens];
+  let bestIdx = -1;
+  let bestDist = Infinity;
+  const mid = tokens.length / 2;
+  for (let i = 2; i < tokens.length - 2; i++) {
+    const t = tokens[i];
+    if (/[,;:\.!?—]$/.test(t) || t === "—") {
+      const dist = Math.abs(i + 1 - mid);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i + 1;
+      }
+    }
+  }
+  if (bestIdx === -1) {
+    bestIdx = Math.ceil(tokens.length / 2);
+  }
+  return [tokens.slice(0, bestIdx), tokens.slice(bestIdx)];
+}
+
+function getDifficultyConfig(diff, verse) {
+  const tokens = tokenize(verse.text);
+  const total = tokens.length;
+  if (diff === "easy") {
+    // Easy: 50% on board, 50% to be added, 1 incorrect word
+    const prefilledCount = Math.floor(total * 0.5);
+    const prefilled = tokens.slice(0, prefilledCount);
+    const needed = tokens.slice(prefilledCount);
+    return {
+      type: "easy",
+      prefilledIndices: Array.from({ length: prefilledCount }, (_, i) => i),
+      prefilledWords: prefilled,
+      neededWords: needed,
+      distractorCount: 1,
+      phrases: [tokens]
+    };
+  } else if (diff === "medium") {
+    // Medium: phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
+    const phrases = splitIntoPhrases(verse.text);
+    return {
+      type: "medium",
+      phrases: phrases,
+      distractorCount: 1
+    };
+  } else {
+    // Hard: complete whole verse, 0 revealed, 2 incorrect words
+    return {
+      type: "hard",
+      prefilledIndices: [],
+      prefilledWords: [],
+      neededWords: tokens,
+      distractorCount: 2,
+      phrases: [tokens]
+    };
+  }
+}
+
+function buildWords(verse, diff = "hard", phraseIdx = 0) {
   const target = tokenize(verse.text);
-  const n = target.length;
-  const nDist = Math.max(2, Math.min(6, Math.round(n * 0.3)));
-  const pool = shuffle([...new Set(DISTRACTORS)]).slice(0, nDist);   // dedupe
-  return shuffle(target.concat(pool));
+  const cfg = getDifficultyConfig(diff, verse);
+
+  if (cfg.type === "easy") {
+    // Exactly remaining 50% + 1 distractor
+    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !target.includes(w)).slice(0, 1);
+    return shuffle(cfg.neededWords.concat(dist));
+  } else if (cfg.type === "medium") {
+    // Target is current phrase words excluding the initial word + 1 distractor
+    const ph = cfg.phrases[phraseIdx] || cfg.phrases[0];
+    const needed = ph.slice(1);
+    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !ph.includes(w)).slice(0, 1);
+    return shuffle(needed.concat(dist));
+  } else {
+    // Hard: all target words + 2 distractors
+    const dist = shuffle([...new Set(DISTRACTORS)]).filter(w => !target.includes(w)).slice(0, 2);
+    return shuffle(target.concat(dist));
+  }
 }
 
 /* ---------- race model ---------- */
 class Racer {
-  constructor(name, targetWords, mode) {
+  constructor(name, targetWords, mode, opts = {}) {
     this.name = name;
     this.mode = mode;                 // "single" | "duo" | "cpu"
+    this.avatarId = opts.avatarId || "flora";
+    this.diff = opts.diff || "hard";
     this.target = targetWords;        // array of correct words in order
-    this.placed = [];                 // words placed on the board, in order
+    this.placed = opts.prefilledWords ? opts.prefilledWords.slice() : [];
+    this.phrases = opts.phrases || [targetWords];
+    this.phraseIdx = opts.phraseIdx || 0;
     this.stunUntil = 0;               // ms timestamp
     this.done = false;
     this.doneAt = null;               // ms timestamp when finished
     this.mistakes = 0;
     this.taps = 0;
   }
-  get progress() { return this.placed.length / this.target.length; }
+  get progress() { return this.target.length ? (this.placed.length / this.target.length) : 0; }
   tryWord(word, now) {
     if (this.done) return false;
     if (now < this.stunUntil) return false;
@@ -173,5 +249,15 @@ const Store = {
     d.wins = (d.wins || 0) + win;
     d.races = (d.races || 0) + race;
     this.save(d);
+  },
+  profile() {
+    const d = this.load();
+    return d.profile || { name: "You", avatarId: "flora" };
+  },
+  setProfile(prof) {
+    const d = this.load();
+    d.profile = Object.assign(d.profile || {}, prof);
+    this.save(d);
   }
 };
+

@@ -57,14 +57,15 @@
     return true;
   }
   async function playVerse(speed) {
-    for (const w of G.you.target.slice()) {
+    while (!G.you.done) {
+      const next = G.you.nextWord();
+      if (!next) break;
       let guard = 0;
-      while (!G.you.done && guard++ < 14) {
-        tapBubble(w, 1);
-        if (G.you.placed.length && G.you.placed[G.you.placed.length - 1] === w) break;
-        await sleep(300);
+      while (!G.you.done && G.you.nextWord() === next && guard++ < 14) {
+        tapBubble(next, 1);
+        await sleep(160);
       }
-      await sleep(speed || 320);
+      await sleep(speed || 240);
     }
   }
   async function gotoRace(modeSel, diff) {
@@ -93,6 +94,15 @@
     t(visible("#menu"), "menu visible on load");
     t(!visible("#pauseOverlay") && !visible("#countOverlay"), "no overlay stuck open on load");
     t($$("#menu .mode-card").length === 3, "three mode cards (single, duo CPU, duo local)");
+    // Pet & Name Profile modal
+    const editBtn = $("#btnEditProfile");
+    t(!!editBtn, "customize pet & name button exists");
+    editBtn.click();
+    t(visible("#profileModal"), "profile modal opens");
+    t($$("#avatarGrid .avatar-card").length >= 8, "avatar selection offers 8 pet characters");
+    $("#btnCloseProfile").click();
+    await until(() => !visible("#profileModal"), 1500);
+    t(!visible("#profileModal"), "profile modal closes");
     // How-to modal
     $("#btnHow").click();
     t(visible("#howModal"), "how-to modal opens");
@@ -109,18 +119,18 @@
     t(visible("#menu"), "back returns to menu");
   });
 
-  /* ================= G1 — single mode: full race + results ================= */
+  /* ================= G1 — single mode: easy race (50% revealed + 1 distractor) → results ================= */
   stage("G1 single race → results", async t => {
     resetSave(); refreshStats();
     await gotoRace("#btnSingle", "easy");
     const words = tokenize(G.verse.text);
     t(G.mode === "single" && G.rivalKind === "ghost", "single mode with ghost rival");
-    t(G.bubbles.length === words.length + G.bubbles.filter(b => !b.isTarget).length, "hill has targets + distractors");
-    t($$("#verseFlow .word.slot").length === words.length, "board has one empty slot per word");
-    const leaked = $$("#verseFlow .word").filter(s => G.you.target.includes(s.textContent.trim())).length;
-    t(leaked === 0, "scripture NOT revealed on board (0 readable words)");
-    t($("#boardRefText").textContent === G.verse.ref, "board shows reference only (" + G.verse.ref + ")");
-    await playVerse(300);
+    t(G.bubbles.filter(b => !b.isTarget).length === 1, "easy mode has exactly 1 distractor card on hill");
+    const prefilledCount = Math.floor(words.length * 0.5);
+    t($$("#verseFlow .word.prefilled").length === prefilledCount, "board starts with 50% words already placed (" + prefilledCount + " words)");
+    t($$("#verseFlow .word.slot").length === words.length - prefilledCount, "board has remaining 50% empty slots");
+    t($("#boardRefText").textContent === G.verse.ref, "board shows reference (" + G.verse.ref + ")");
+    await playVerse(260);
     t(G.you.done, "race completes word-for-word");
     await until(() => visible("#results"), 4000);
     t(visible("#results"), "results screen shows");
@@ -138,9 +148,10 @@
     t(visible("#menu"), "quit returns to menu");
   });
 
+
   /* ================= G2 — wrong word: stun + reaction ================= */
   stage("G2 wrong tap → stun & sad", async t => {
-    await gotoRace("#btnSingle", "easy");
+    await gotoRace("#btnSingle", "hard");
     const wrong = G.bubbles.find(b => !b.isTarget && b.owner === 1);
     t(!!wrong, "a distractor card exists");
     tapBubble(wrong.word, 1);
@@ -158,7 +169,7 @@
 
   /* ================= G3 — peek hint ================= */
   stage("G3 peek highlights next slot", async t => {
-    await gotoRace("#btnSingle", "easy");
+    await gotoRace("#btnSingle", "hard");
     $("#peekBtn").click();
     const idx = 0;
     const span = $('#verseFlow .word[data-i="' + idx + '"]');
@@ -171,7 +182,7 @@
 
   /* ================= G4 — pause / resume / quit / stale-race guard ================= */
   stage("G4 pause, resume, quit, race guard", async t => {
-    await gotoRace("#btnSingle", "easy");
+    await gotoRace("#btnSingle", "hard");
     $("#pauseBtn").click();
     t(G.paused && visible("#pauseOverlay"), "pause shows overlay");
     const before = G.you.taps;
@@ -186,7 +197,7 @@
     t(!G.paused, "Esc double-toggle returns to running");
     // quit mid-countdown, start fresh race — stale countdown/timers must not leak
     quitGame();
-    await gotoRace("#btnSingle", "easy");
+    await gotoRace("#btnSingle", "hard");
     t(G.running && G.raceId === G.myRace, "fresh race runs after quitting a race");
     await playVerse(250);
     await until(() => visible("#results"), 4000);
@@ -215,7 +226,7 @@
 
   /* ================= G6 — duo local split hill + P2 keyboard ================= */
   stage("G6 duo local: split hill & P2 keys", async t => {
-    await gotoRace("#btnDuoLocal", "easy");
+    await gotoRace("#btnDuoLocal", "hard");
     t(G.mode === "duo" && G.rivalKind === "local", "duo local mode active");
     t(visible("#board2"), "second board visible for P2");
     t($$("#verseFlow .word.slot").length > 0 && $$("#verseFlow2 .word.slot").length > 0, "both boards have slots");

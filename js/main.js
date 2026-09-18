@@ -152,35 +152,77 @@ function startGame(mode, verse, opts = {}) {
   G.running = false;
   G.paused = false;
   G.finished = false;
+  G.combo = 0;
 
   const targetWords = tokenize(verse.text);
+  G.verseWords = targetWords;
+  const diff = G.pendingDifficulty || opts.diff || "hard";
+  G.difficulty = diff;
+  const diffCfg = getDifficultyConfig(diff, verse);
+  G.diffCfg = diffCfg;
+  G.phraseIdx = 0;
+
+  const userProf = Store.profile();
+  const youName = opts.youName || userProf.name || "You";
+  const avatarId = opts.avatarId || userProf.avatarId || "flora";
+
   const kind = opts.rivalKind || (mode === "single" ? "ghost" : "cpu");
   const isDuoLocal = mode === "duo" && kind === "local";
-  // duo-local: each player gets their own word set on their own half of the hill
-  const words = buildWords(verse);
-  const words2 = isDuoLocal ? buildWords(verse) : null;
+
   const myRace = ++G.raceId;
   G.myRace = myRace;
 
-  G.you = new Racer(opts.youName || "You", targetWords, mode);
+  // Determine pre-filled words for this difficulty
+  let prefilledWords = [];
+  let prefilledIndices = [];
+  if (diffCfg.type === "easy") {
+    prefilledWords = diffCfg.prefilledWords;
+    prefilledIndices = diffCfg.prefilledIndices;
+  } else if (diffCfg.type === "medium") {
+    prefilledWords = [diffCfg.phrases[0][0]];
+    prefilledIndices = [0];
+  }
+
+  G.you = new Racer(youName, targetWords, mode, {
+    avatarId: avatarId,
+    diff: diff,
+    prefilledWords: prefilledWords,
+    phrases: diffCfg.phrases,
+    phraseIdx: 0
+  });
   G.rivalKind = kind;
   G.duoDifficulty = opts.duoDifficulty || "normal";
 
   if (mode === "single") {
     const seed = RIVALS[Math.floor(Math.random() * RIVALS.length)];
-    G.rival = Object.assign(new Racer(seed.name, targetWords, "ghost"), { spw: seed.spw, hue: seed.hue });
+    G.rival = Object.assign(new Racer(seed.name, targetWords, "ghost", {
+      diff: diff,
+      prefilledWords: prefilledWords,
+      phrases: diffCfg.phrases,
+      phraseIdx: 0
+    }), { spw: seed.spw, hue: seed.hue });
   } else {
-    G.rival = new Racer(opts.rivalName || "Friend", targetWords, "duo");
+    G.rival = new Racer(opts.rivalName || "Friend", targetWords, "duo", {
+      avatarId: "pirate",
+      diff: diff,
+      prefilledWords: prefilledWords,
+      phrases: diffCfg.phrases,
+      phraseIdx: 0
+    });
   }
 
-  // build board: REFERENCE ONLY — no scripture revealed. One empty
-  // slot per word; slots fill in as the player taps the right words.
+  // Setup board slots with pre-filled indicators
   const buildBoard = (flowEl, refEl) => {
     flowEl.innerHTML = "";
-    targetWords.forEach((_, i) => {
+    targetWords.forEach((word, i) => {
       const s = document.createElement("span");
-      s.className = "word slot";
-      s.textContent = "\u00a0";            // invisible placeholder keeps chip size
+      if (prefilledIndices.includes(i)) {
+        s.className = "word prefilled";
+        s.textContent = word;
+      } else {
+        s.className = "word slot";
+        s.textContent = "\u00a0";
+      }
       s.dataset.i = i;
       flowEl.appendChild(s);
       flowEl.appendChild(document.createTextNode(" "));
@@ -189,6 +231,7 @@ function startGame(mode, verse, opts = {}) {
   };
   buildBoard($("#verseFlow"), $("#boardRefText"));
   buildBoard($("#verseFlow2"), $("#boardRef2Text"));
+
   $("#board2").style.display = isDuoLocal ? "flex" : "none";
   $("#board1").classList.toggle("duo", isDuoLocal);
   $("#board2").classList.toggle("duo", isDuoLocal);
@@ -198,16 +241,31 @@ function startGame(mode, verse, opts = {}) {
   $("#board2Name").textContent = "🐏 " + (opts.rivalName || "Friend");
   $("#hudRef").textContent = verse.ref;
 
-  // build bubbles on hill
+  // Medium phrase badge
+  const phraseChip = $("#hudPhrase");
+  if (phraseChip) {
+    if (diff === "medium" && diffCfg.phrases.length > 1) {
+      phraseChip.style.display = "inline-flex";
+      phraseChip.textContent = `Phrase 1/${diffCfg.phrases.length}`;
+    } else {
+      phraseChip.style.display = "none";
+    }
+  }
+
+  // Build bubbles on hill
   const area = $("#hillArea");
   area.querySelectorAll(".word-bubble").forEach(b => b.remove());
   makeClouds(area, 4);
+
+  const words = buildWords(verse, diff, 0);
+  const words2 = isDuoLocal ? buildWords(verse, diff, 0) : null;
+
   const addSet = (list, side, player) => {
     list.forEach((word) => {
       const b = document.createElement("div");
       b.className = "word-bubble" + (player === 2 ? " p2" : "");
       b.textContent = word;
-      b.style.left = "-400px";   // off-hill until scatter runs
+      b.style.left = "-400px";
       b.style.top = "-40px";
       b.addEventListener("pointerdown", (e) => onBubbleTap(word, b, e, player));
       area.appendChild(b);
@@ -215,33 +273,34 @@ function startGame(mode, verse, opts = {}) {
     });
   };
   if (isDuoLocal) {
-    addSet(words, 1, 1);   // Yipee owns the left half
-    addSet(words2, 2, 2);  // rival owns the right half
+    addSet(words, 1, 1);
+    addSet(words2, 2, 2);
   } else {
-    addSet(words, 0, 1);   // full-width hill
+    addSet(words, 0, 1);
   }
 
-  // Rig the animated lamb (and rival) fresh for each race
-  if (!G.yipeeRig || G.yipeeRig.mode !== 'alive') {
-    if (G.yipeeRig) G.yipeeRig.destroy();
-    G.yipeeRig = rigLamb($("#yipee"), { id: "y" });
-  }
+  // Rig the animated player avatar (and rival)
+  if (G.yipeeRig) G.yipeeRig.destroy();
+  G.yipeeRig = rigLamb($("#yipee"), { id: "y", avatarId: G.you.avatarId });
+
+  const petInfo = PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
+  const sideTag = $("#playerSideTag");
+  if (sideTag) sideTag.textContent = `${petInfo.icon} ${G.you.name}`;
+
   if (!G.rivalRig && mode === "duo") {
-    G.rivalRig = rigLamb($("#rivalDot"), { id: "r", wool: "#ffe4ef", woolShade: "#f3c6d6", face: "#ffe0ea", tint: "#f087ab", dark: "#5a4632" });
+    G.rivalRig = rigLamb($("#rivalDot"), { id: "r", avatarId: "pirate", wool: "#ffe4ef", woolShade: "#f3c6d6", face: "#ffe0ea", tint: "#f087ab", dark: "#5a4632" });
   }
 
-  // rival dot (duo)
   const dot = $("#rivalDot");
   $("#rivalChip").style.display = mode === "single" ? "" : "none";
   if (mode === "duo") {
     $("#rivalSide").style.display = "flex";
     dot.style.display = "flex";
-    // the rig replaces the dot's contents — re-add the name tag
     let tag = dot.querySelector(".tag");
     if (!tag) { tag = document.createElement("span"); tag.className = "tag"; dot.appendChild(tag); }
     tag.textContent = G.rival.name;
     $("#duoBars").style.display = "flex";
-    $("#barYouName").textContent = "🐑 " + G.you.name;
+    $("#barYouName").textContent = `${petInfo.icon} ${G.you.name}`;
     $("#barThemName").textContent = "🐏 " + G.rival.name;
   } else {
     $("#rivalSide").style.display = "none";
@@ -251,12 +310,14 @@ function startGame(mode, verse, opts = {}) {
   updateBars();
   $("#peekBtn").disabled = false;
   showScreen("#game");
-  repositionBubbles();                                   // now that the screen is visible
-  setTimeout(repositionBubbles, 60);                     // once webfonts settle
+  repositionBubbles();
+  setTimeout(repositionBubbles, 60);
+
   countdown(() => {
-    if (myRace !== G.raceId) return;      // a newer race started
+    if (myRace !== G.raceId) return;
     G.startAt = performance.now();
     G.running = true;
+    triggerYipeeCheer(pick(["YIPEE! You've got this! ✨", "Run like the wind! 🌸", "Baa-lieve in yourself! 🌟"]));
     if (G.rivalKind === "cpu" || G.rivalKind === "ghost") startRivalClock();
     tick();
   });
@@ -268,7 +329,7 @@ function countdown(cb) {
   ov.classList.remove("hidden");
   const num = $("#countNum");
   let n = 3;
-  const myRace = G.raceId;                 // bail if a newer race takes over
+  const myRace = G.raceId;
   if (G.countTimers) G.countTimers.forEach(clearTimeout);
   G.countTimers = [];
   const later = (fn, ms) => G.countTimers.push(setTimeout(fn, ms));
@@ -285,7 +346,7 @@ function countdown(cb) {
       later(() => { if (myRace !== G.raceId) return; ov.classList.add("hidden"); cb(); }, 550);
     }
   }, 800);
-  G.countInt = iv;                         // so quitGame can stop it
+  G.countInt = iv;
 }
 
 /* ============================================================
@@ -293,7 +354,6 @@ function countdown(cb) {
    ============================================================ */
 function onBubbleTap(word, el, e, player = 1) {
   if (!G.running || G.paused) return;
-  // Yipee's eyes/head glance toward the tapped card (only when it's P1)
   if (player !== 2 && e && G.yipeeRig) {
     try { G.yipeeRig.lookAt(e.clientX, e.clientY); } catch (err) {}
   }
@@ -308,21 +368,39 @@ function onBubbleTap(word, el, e, player = 1) {
     el.classList.add("taken");
     const b = G.bubbles.find(x => x.el === el);
     if (b) b.taken = true;
-    fillBoardWord(racer.placed.length - 1, player, word);
-    // lamb stays on the side and reacts: full rigged performance
+    fillBoardWord(racer.placed.length - 1, player, word, false);
+
     if (player === 2) {
       if (G.rivalRig) G.rivalRig.rejoice();
       say("#rivalSay", pick(["Yay! 🎉", "Baa-illiant! ⭐", "Keep going! 💪"]), "good");
     } else {
       if (G.yipeeRig) G.yipeeRig.rejoice();
       say("#yipeeSay", pick(["Yipee! 🎉", "Yes! ⭐", "Amen! 🙌", "Keep going! 💪"]), "good");
+
+      // Combos & Yipee Mascot pop-ups
+      G.combo = (G.combo || 0) + 1;
+      if (G.combo === 3) {
+        triggerYipeeCheer(pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
+      } else if (racer.placed.length === Math.ceil(racer.target.length / 2)) {
+        triggerYipeeCheer("Halfway there! Keep going! 🌈");
+      }
     }
     updateBars();
+
+    // Check for Medium mode phrase completion
+    if (G.diffCfg && G.diffCfg.type === "medium" && G.diffCfg.phrases.length > 1 && G.phraseIdx === 0) {
+      const p0Len = G.diffCfg.phrases[0].length;
+      if (racer.placed.length === p0Len) {
+        advanceToPhraseTwo(player);
+        return;
+      }
+    }
+
     if (racer.done) finishRace(player === 2 ? "rival" : "you");
   } else {
     SFX.wrong();
     el.classList.add("shake");
-    // sad lamb + friendly nudge on wrong
+    if (player === 1) G.combo = 0;
     if (player === 2) {
       if (G.rivalRig) G.rivalRig.sad();
       say("#rivalSay", "Oops!", "bad");
@@ -333,11 +411,64 @@ function onBubbleTap(word, el, e, player = 1) {
   }
 }
 
+function advanceToPhraseTwo(player = 1) {
+  G.phraseIdx = 1;
+  const p0Len = G.diffCfg.phrases[0].length;
+  const p1Word0 = G.diffCfg.phrases[1][0];
+
+  fillBoardWord(p0Len, 1, p1Word0, true);
+  if (G.you.placed.length === p0Len) {
+    G.you.placed.push(p1Word0);
+  }
+  if (G.rival && G.rival.placed.length === p0Len) {
+    fillBoardWord(p0Len, 2, p1Word0, true);
+    G.rival.placed.push(p1Word0);
+  }
+
+  const phraseChip = $("#hudPhrase");
+  if (phraseChip) {
+    phraseChip.textContent = `Phrase 2/${G.diffCfg.phrases.length}`;
+  }
+
+  toast("Phrase 1 Done! 🎉 Phrase 2 Unlocked!");
+  triggerYipeeCheer("Phrase 1 Complete! 🏆 Now Phrase 2!", "good", 2400);
+
+  // Repopulate hill with phrase 2 remaining words + 1 distractor
+  const area = $("#hillArea");
+  area.querySelectorAll(".word-bubble").forEach(b => b.remove());
+  G.bubbles = [];
+
+  const isDuoLocal = G.mode === "duo" && G.rivalKind === "local";
+  const words = buildWords(G.verse, "medium", 1);
+  const words2 = isDuoLocal ? buildWords(G.verse, "medium", 1) : null;
+
+  const addSet = (list, side, p) => {
+    list.forEach((word) => {
+      const b = document.createElement("div");
+      b.className = "word-bubble" + (p === 2 ? " p2" : "");
+      b.textContent = word;
+      b.style.left = "-400px";
+      b.style.top = "-40px";
+      b.addEventListener("pointerdown", (e) => onBubbleTap(word, b, e, p));
+      area.appendChild(b);
+      G.bubbles.push({ word, el: b, taken: false, owner: p, isTarget: G.verseWords.includes(word) });
+    });
+  };
+  if (isDuoLocal) {
+    addSet(words, 1, 1);
+    addSet(words2, 2, 2);
+  } else {
+    addSet(words, 0, 1);
+  }
+  repositionBubbles();
+  updateBars();
+}
+
 /* run a one-shot animation class on an element */
 function animOnce(el, cls, ms) {
   if (!el) return;
   el.classList.remove(cls);
-  void el.offsetWidth;                     // restart animation
+  void el.offsetWidth;
   el.classList.add(cls);
   setTimeout(() => el.classList.remove(cls), ms);
 }
@@ -355,11 +486,20 @@ function say(id, text, mood, ms = 1300) {
   sayTimers[id] = setTimeout(() => el.classList.remove("show"), ms);
 }
 
-function fillBoardWord(idx, player = 1, word = "") {
+function fillBoardWord(idx, player = 1, word = "", isPrefilled = false) {
   const root = player === 2 ? "#verseFlow2" : "#verseFlow";
   const span = $(`${root} .word[data-i="${idx}"]`);
-  if (span) { span.textContent = word; span.classList.remove("slot"); span.classList.add("filled"); }
+  if (span) {
+    span.textContent = word;
+    span.classList.remove("slot");
+    if (isPrefilled) {
+      span.classList.add("prefilled");
+    } else {
+      span.classList.add("filled");
+    }
+  }
 }
+
 
 /* ============================================================
    RIVAL CLOCKS
@@ -560,12 +700,14 @@ function showResults(youWon, youMs, rivalMs, stars, newBest) {
   const lb = $("#resBoard");
   lb.innerHTML = "";
   const rows = [];
+  const pet = PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
+
   if (G.mode === "single") {
     const targetWords = tokenize(G.verse.text);
     const n = targetWords.length;
     const totalOf = (spw) => spw * n * 1000;      // ms for the whole verse
     const rt = rivalMs != null ? rivalMs : totalOf(G.rival.spw) * (0.9 + Math.random() * 0.25);
-    rows.push({ name: "🐑 " + G.you.name, t: youMs, me: true });
+    rows.push({ name: `${pet.icon} ${G.you.name}`, t: youMs, me: true });
     rows.push({ name: "🐏 " + G.rival.name, t: rt, me: false });
     // a couple of other players for flavour
     shuffle(RIVALS.filter(r => r.name !== G.rival.name)).slice(0, 2).forEach(r => {
@@ -573,7 +715,7 @@ function showResults(youWon, youMs, rivalMs, stars, newBest) {
     });
     rows.sort((a, b) => (a.t ?? Infinity) - (b.t ?? Infinity));
   } else {
-    rows.push({ name: "🐑 " + G.you.name, t: youMs, me: true });
+    rows.push({ name: `${pet.icon} ${G.you.name}`, t: youMs, me: true });
     rows.push({ name: "🐏 " + G.rival.name, t: rivalMs, me: false });
     rows.sort((a, b) => (a.t ?? Infinity) - (b.t ?? Infinity));
   }
@@ -589,7 +731,7 @@ function showResults(youWon, youMs, rivalMs, stars, newBest) {
 }
 
 /* ============================================================
-   MENU / SELECT WIRING
+   MENU / SELECT / PROFILE WIRING
    ============================================================ */
 function refreshStats() {
   const t = Store.totals();
@@ -598,10 +740,59 @@ function refreshStats() {
   $("#statRaces").textContent = "🏃 " + t.races;
 }
 
+function refreshProfileUI() {
+  const prof = Store.profile();
+  const pet = PET_AVATARS.find(p => p.id === prof.avatarId) || PET_AVATARS[0];
+  const nameEl = $("#menuPlayerName");
+  const iconEl = $("#menuAvatarIcon");
+  if (nameEl) nameEl.textContent = prof.name || "You";
+  if (iconEl) iconEl.textContent = pet.icon;
+}
+
+let selectedAvatarId = "flora";
+
+function openProfileModal() {
+  const prof = Store.profile();
+  selectedAvatarId = prof.avatarId || "flora";
+  const input = $("#playerNameInput");
+  if (input) input.value = prof.name || "You";
+
+  const grid = $("#avatarGrid");
+  grid.innerHTML = "";
+  PET_AVATARS.forEach(pet => {
+    const card = document.createElement("div");
+    card.className = "avatar-card" + (pet.id === selectedAvatarId ? " sel" : "");
+    card.innerHTML = `
+      <div class="av-icon">${pet.icon}</div>
+      <div class="av-name">${pet.name}</div>
+      <div class="av-role">${pet.role}</div>
+      <div class="av-desc">${pet.desc}</div>
+    `;
+    card.addEventListener("click", () => {
+      $$(".avatar-card").forEach(c => c.classList.remove("sel"));
+      card.classList.add("sel");
+      selectedAvatarId = pet.id;
+    });
+    grid.appendChild(card);
+  });
+
+  $("#profileModal").classList.remove("hidden");
+}
+
+function closeProfileModal() {
+  $("#profileModal").classList.add("hidden");
+}
+
+function saveProfile() {
+  const nameInput = $("#playerNameInput");
+  const name = (nameInput ? nameInput.value.trim() : "") || "You";
+  Store.setProfile({ name, avatarId: selectedAvatarId });
+  refreshProfileUI();
+  closeProfileModal();
+  toast("Profile updated! 🐾");
+}
+
 function openVerseSelect(mode, rivalKind, rivalName) {
-  // NOTE: kept as a wrapper — the verse picker was removed because seeing
-  // the scripture list would spoil the memory challenge. Now the player
-  // picks a difficulty and a random verse is drawn from that tier.
   openLevelSelect(mode, rivalKind, rivalName);
 }
 
@@ -617,9 +808,9 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   const grid = $("#levelGrid");
   grid.innerHTML = "";
   const cards = [
-    { diff: "easy",   icon: "🌟",       name: "Easy",   desc: "Short verses · up to 12 words" },
-    { diff: "medium", icon: "🌟🌟",     name: "Medium", desc: "Medium verses · 13–21 words" },
-    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   desc: "Long verses · 22+ words" }
+    { diff: "easy",   icon: "🌟",       name: "Easy",   desc: "50% pre-filled board · 1 trick word!" },
+    { diff: "medium", icon: "🌟🌟",     name: "Medium", desc: "Phrase-by-phrase · 1 trick word per phrase!" },
+    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   desc: "Full verse from memory · 2+ trick words!" }
   ];
   cards.forEach(c => {
     const card = document.createElement("div");
@@ -628,7 +819,7 @@ function openLevelSelect(mode, rivalKind, rivalName) {
       <div class="snippet">${c.desc}</div>
       <div class="meta">A random verse is dealt — no peeking! 🙈</div>`;
     card.addEventListener("click", () => {
-      const verse = pickVerse(c.diff);          // RANDOM verse from the tier
+      const verse = pickVerse(c.diff);
       G.pendingDifficulty = c.diff;
       startGame(mode, verse, {
         rivalKind: rivalKind,
@@ -642,12 +833,25 @@ function openLevelSelect(mode, rivalKind, rivalName) {
 }
 
 function wire() {
-  // menu
+  // menu & profile
   $("#btnSingle").addEventListener("click", () => openLevelSelect("single", "ghost"));
   $("#btnDuoCpu").addEventListener("click", () => openLevelSelect("duo", "cpu"));
   $("#btnDuoLocal").addEventListener("click", () => openLevelSelect("duo", "local"));
   $("#btnHow").addEventListener("click", () => $("#howModal").classList.remove("hidden"));
   $("#howClose").addEventListener("click", () => $("#howModal").classList.add("hidden"));
+
+  const btnEdit = $("#btnEditProfile");
+  if (btnEdit) btnEdit.addEventListener("click", openProfileModal);
+  const btnCloseP = $("#btnCloseProfile");
+  if (btnCloseP) btnCloseP.addEventListener("click", closeProfileModal);
+  const btnSaveP = $("#btnSaveProfile");
+  if (btnSaveP) btnSaveP.addEventListener("click", saveProfile);
+  const profModal = $("#profileModal");
+  if (profModal) {
+    profModal.addEventListener("click", (e) => {
+      if (e.target.id === "profileModal") closeProfileModal();
+    });
+  }
 
   // duo difficulty chips on menu
   $$(".diff-chip").forEach(c => c.addEventListener("click", () => {
@@ -673,7 +877,7 @@ function wire() {
     });
   });
   $("#resOther").addEventListener("click", () => openLevelSelect(G.pendingMode, G.pendingRivalKind, G.pendingRivalName));
-  $("#resMenu").addEventListener("click", () => { refreshStats(); showScreen("#menu"); });
+  $("#resMenu").addEventListener("click", () => { refreshStats(); refreshProfileUI(); showScreen("#menu"); });
 
   // keyboard: P2 numbers, Esc pause
   document.addEventListener("keydown", (e) => {
@@ -692,6 +896,8 @@ function wire() {
   });
 
   refreshStats();
+  refreshProfileUI();
 }
 
 document.addEventListener("DOMContentLoaded", wire);
+

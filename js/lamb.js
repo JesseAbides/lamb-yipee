@@ -13,18 +13,109 @@
      • idle = breathing, weight-shift, blinks, ear flicks, glances
    ============================================================ */
 
+const PET_AVATARS = [
+  { id: "flora",  name: "Flora",      icon: "🌸", role: "Flower Lover",  desc: "Loves daisies & sweet clover", tint: "#ffeef5", wool: "#fff5f9" },
+  { id: "pirate", name: "Barnaby",    icon: "🏴‍☠️", role: "Verse Pirate",  desc: "Seeking scripture treasures", tint: "#eef2ff", wool: "#f0f2f8" },
+  { id: "chef",   name: "Chef Paws",  icon: "👨‍🍳", role: "Master Baker",  desc: "Baking fresh daily bread", tint: "#fff8eb", wool: "#fffbf2" },
+  { id: "cosmo",  name: "Cosmo",      icon: "🚀", role: "Star Explorer", desc: "Exploring the heavens", tint: "#e8f7ff", wool: "#e5f4fc" },
+  { id: "royal",  name: "Prince Pip", icon: "👑", role: "Royal Highness",desc: "Small majesty, big heart", tint: "#fffbe8", wool: "#fef9e2" },
+  { id: "berry",  name: "Berry",      icon: "🍓", role: "Berry Cutie",   desc: "Sweet & meadow-fresh", tint: "#fff0f0", wool: "#ffe8e8" },
+  { id: "mochi",  name: "Mochi",      icon: "🐱", role: "Playful Kitten",desc: "Curious and purrs on correct words", tint: "#fff3eb", wool: "#fdf4ee" },
+  { id: "lamb",   name: "Yipee Lamb", icon: "🐑", role: "Classic Lamb",  desc: "Gentle lamb of green pastures", tint: "#fdf6e8", wool: "#fdf6e8" }
+];
+
+function getAvatarAccessorySVG(avatarId) {
+  switch (avatarId) {
+    case "flora":
+      return `
+      <g class="pet-acc pet-flora">
+        <path d="M38 18 Q32 12 28 17 Q34 21 38 18" fill="#78c850"/>
+        <path d="M82 18 Q88 12 92 17 Q86 21 82 18" fill="#78c850"/>
+        <circle cx="43" cy="19" r="5" fill="#ff7da7"/>
+        <circle cx="43" cy="19" r="2.2" fill="#ffe259"/>
+        <circle cx="60" cy="13" r="6.5" fill="#ffffff"/>
+        <circle cx="60" cy="13" r="2.8" fill="#ffca28"/>
+        <circle cx="77" cy="19" r="5" fill="#ff7da7"/>
+        <circle cx="77" cy="19" r="2.2" fill="#ffe259"/>
+      </g>`;
+    case "pirate":
+      return `
+      <g class="pet-acc pet-pirate">
+        <path d="M26 19 C38 -2, 82 -2, 94 19 C78 12, 42 12, 26 19 Z" fill="#2d2d38"/>
+        <path d="M26 19 C42 12, 78 12, 94 19" stroke="#ffce4a" stroke-width="2.4" fill="none"/>
+        <circle cx="60" cy="10" r="3.2" fill="#ffffff"/>
+        <path d="M57 14 L63 14 M58 11 L62 17 M62 11 L58 17" stroke="#ffffff" stroke-width="1.1"/>
+        <path d="M38 41 L60 52" stroke="#2d2d38" stroke-width="1.8"/>
+        <ellipse cx="49" cy="46" rx="8" ry="9" fill="#24242e"/>
+      </g>`;
+    case "chef":
+      return `
+      <g class="pet-acc pet-chef">
+        <path d="M46 15 C38 4, 48 -10, 60 -10 C72 -10, 82 4, 74 15 Z" fill="#ffffff"/>
+        <path d="M42 15 L78 15 L76 22 L44 22 Z" fill="#f5f5f5" stroke="#dedede" stroke-width="1"/>
+        <polygon points="53,73 67,73 60,82" fill="#ff4d4d"/>
+      </g>`;
+    case "cosmo":
+      return `
+      <g class="pet-acc pet-cosmo">
+        <ellipse cx="60" cy="45" rx="34" ry="32" fill="rgba(142, 221, 255, 0.28)" stroke="#58b8f0" stroke-width="2.5"/>
+        <path d="M38 28 Q50 18 68 20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".8"/>
+        <path d="M60 13 L60 2" stroke="#ffce4a" stroke-width="2"/>
+        <polygon points="60,-3 62,1 66,1 63,4 64,8 60,5 56,8 57,4 54,1 58,1" fill="#ffce4a"/>
+      </g>`;
+    case "royal":
+      return `
+      <g class="pet-acc pet-royal">
+        <path d="M42 18 L45 3 L53 10 L60 0 L67 10 L75 3 L78 18 Z" fill="#ffce4a" stroke="#d4971c" stroke-width="1.5"/>
+        <circle cx="60" cy="9" r="2.8" fill="#e91e63"/>
+        <circle cx="51" cy="13" r="2" fill="#2196f3"/>
+        <circle cx="69" cy="13" r="2" fill="#4caf50"/>
+      </g>`;
+    case "berry":
+      return `
+      <g class="pet-acc pet-berry">
+        <path d="M38 18 C38 0, 82 0, 82 18 Z" fill="#ff4757"/>
+        <circle cx="50" cy="9" r="1.1" fill="#ffeaa7"/>
+        <circle cx="60" cy="6" r="1.1" fill="#ffeaa7"/>
+        <circle cx="70" cy="9" r="1.1" fill="#ffeaa7"/>
+        <circle cx="55" cy="14" r="1.1" fill="#ffeaa7"/>
+        <circle cx="65" cy="14" r="1.1" fill="#ffeaa7"/>
+        <path d="M60 2 Q58 -5 54 -8 Q62 -4 60 2" fill="#2ed573"/>
+        <path d="M60 3 Q50 1 45 4 Q54 6 60 3" fill="#2ed573"/>
+        <path d="M60 3 Q70 1 75 4 Q66 6 60 3" fill="#2ed573"/>
+      </g>`;
+    case "mochi":
+      return `
+      <g class="pet-acc pet-mochi">
+        <polygon points="30,28 20,4 42,16" fill="#f8c291" stroke="#e58e26" stroke-width="1.2"/>
+        <polygon points="28,24 23,8 38,16" fill="#ffb8b8"/>
+        <polygon points="90,28 100,4 78,16" fill="#f8c291" stroke="#e58e26" stroke-width="1.2"/>
+        <polygon points="92,24 97,8 82,16" fill="#ffb8b8"/>
+        <path d="M26 52 L12 50 M25 56 L10 57" stroke="#57606f" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M94 52 L108 50 M95 56 L110 57" stroke="#57606f" stroke-width="1.4" stroke-linecap="round"/>
+        <circle cx="60" cy="74" r="4.5" fill="#ffce4a" stroke="#b7791f" stroke-width="1"/>
+        <line x1="57" y1="74" x2="63" y2="74" stroke="#b7791f" stroke-width="1"/>
+      </g>`;
+    default:
+      return "";
+  }
+}
+
 function makeLambSVG(opts = {}) {
   const id = opts.id || "x";
-  const wool    = opts.wool    || "#fdf6e8";
+  const avatarId = opts.avatarId || opts.avatar || "flora";
+  const petCfg  = PET_AVATARS.find(p => p.id === avatarId) || PET_AVATARS[0];
+  const wool    = opts.wool    || petCfg.wool || "#fdf6e8";
   const woolHi  = opts.woolHi  || "#fffdf6";
   const woolSh  = opts.woolSh  || opts.woolShade || "#e9d5b2";
   const skin    = opts.skin    || opts.face      || "#ffedda";
   const skinSh  = opts.skinSh  || "#f4d9b8";
-  const earIn   = opts.earIn   || opts.tint      || "#f6adad";
+  const earIn   = opts.earIn   || opts.tint      || petCfg.tint || "#f6adad";
   const hoof    = opts.hoof    || "#5f4030";
   const hoofHi  = opts.hoofHi  || "#7b5844";
   const iris    = opts.iris    || "#8a5a28";
   const tongue  = opts.tongue  || "#f4899b";
+  const accessorySvg = getAvatarAccessorySVG(avatarId);
 
   return `
 <svg class="lamb-rig" viewBox="0 0 120 128" xmlns="http://www.w3.org/2000/svg">
@@ -170,7 +261,10 @@ function makeLambSVG(opts = {}) {
       <g class="rig-mouth-sad" opacity="0">
         <path d="M53.5 68 Q60 60.5 66.5 68" stroke="#8e3a2c" stroke-width="2.6" fill="none" stroke-linecap="round"/>
       </g>
+      <!-- Pet Costume Accessory -->
+      ${accessorySvg}
     </g>
+
 
     <!-- celebrate sparkles -->
     <g class="rig-sparkles" opacity="0">
@@ -500,3 +594,22 @@ function rigLamb(container, opts = {}) {
     dbg: () => ({ mode, y: +y.toFixed(1), earL: +earL.x.toFixed(1), earR: +earR.x.toFixed(1), head: +headR.x.toFixed(1), sqy: +sqy.x.toFixed(2), legFL: +legFL.x.toFixed(1), tt: { earL: earL.t, head: headR.t, slump: slump.t } })
   };
 }
+
+/* ============================================================
+   YIPEE GUEST MASCOT CHEERLEADER POP-UP
+   ============================================================ */
+function triggerYipeeCheer(text, mood = "good", ms = 2200) {
+  const pop = document.getElementById("yipeeCheerPop");
+  if (!pop) return;
+  const bubble = pop.querySelector(".cheer-bubble");
+  if (bubble) bubble.textContent = text;
+  pop.classList.remove("hidden", "pop-out");
+  pop.classList.add("pop-in");
+  clearTimeout(pop._timer);
+  pop._timer = setTimeout(() => {
+    pop.classList.remove("pop-in");
+    pop.classList.add("pop-out");
+    setTimeout(() => pop.classList.add("hidden"), 350);
+  }, ms);
+}
+
