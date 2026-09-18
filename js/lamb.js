@@ -777,31 +777,34 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
 function triggerPlayerReaction(kind = "happy", ms = 2200) {
   const box = document.getElementById("playerAvatarBox");
   const vid = document.getElementById("playerReactionVid");
-  const img = document.getElementById("playerIdleImg");
   if (!box || !vid) return;
 
-  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "capybara";
+  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || (typeof Store !== "undefined" && Store.profile().avatarId) || "capybara";
   const videoSrc = getAvatarVideo(avatarId, kind);
 
   box.classList.remove("happy", "oops");
   box.classList.add(kind === "happy" ? "happy" : "oops");
 
   if (videoSrc) {
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.loop = true;
     if (vid.getAttribute("src") !== videoSrc) {
       vid.src = videoSrc;
       vid.load();
     }
     vid.currentTime = 0;
-    vid.style.display = "block";
-    if (img) img.style.display = "none";
+    vid.classList.add("active");
+
     const p = vid.play();
-    if (p !== undefined) p.catch(() => {});
+    if (p !== undefined) {
+      p.catch(() => {});
+    }
 
     clearTimeout(box._reactionTimer);
     box._reactionTimer = setTimeout(() => {
       box.classList.remove("happy", "oops");
-      vid.style.display = "none";
-      if (img) img.style.display = "block";
+      vid.classList.remove("active");
       try { vid.pause(); } catch (e) {}
     }, ms);
   }
