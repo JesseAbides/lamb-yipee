@@ -422,7 +422,12 @@ function onBubbleTap(word, el, e, player = 1) {
       if (G.yipeeRig) G.yipeeRig.rejoice();
       say("#yipeeSay", pick(["Yipee! 🎉", "Yes! ⭐", "Amen! 🙌", "Keep going! 💪"]), "good");
 
-      // Avatar Happy celebration video reaction on bottom right
+      // Bottom-left character avatar reaction video (Koa/Capybara etc)
+      if (typeof triggerPlayerReaction === "function") {
+        triggerPlayerReaction("happy", 2000);
+      }
+
+      // Bottom-right Yipee mascot cheer pop-up (always Yipee video)
       G.combo = (G.combo || 0) + 1;
       if (G.combo === 3) {
         triggerAvatarReaction("happy", pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
@@ -467,7 +472,11 @@ function onBubbleTap(word, el, e, player = 1) {
     } else {
       if (G.yipeeRig) G.yipeeRig.sad();
       say("#yipeeSay", pick(["Try another word! 💛", "Not that one!", "Almost! 🤔"]), "bad");
-      // Avatar Oops try again video reaction on bottom right
+      // Bottom-left character avatar oops reaction video
+      if (typeof triggerPlayerReaction === "function") {
+        triggerPlayerReaction("oops", 1800);
+      }
+      // Bottom-right Yipee mascot oops pop-up (always Yipee video)
       triggerAvatarReaction("oops", pick(["Oops, try again! 🤔", "Not that one! 💛", "Almost! ✨", "Keep trying! 💪"]));
     }
   }
@@ -801,6 +810,7 @@ function finishRace(winner) {
   if (youWon) {
     SFX.finish();
     confettiBurst();
+    if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("happy", 3200);
     if (G.yipeeRig) G.yipeeRig.rejoice(1300);
   } else {
     SFX.lose();
