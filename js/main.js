@@ -214,7 +214,7 @@ function startGame(mode, verse, opts = {}) {
   G.difficultyConfig = diffCfg;
   G.currentPhraseIdx = 0;
   G.totalPhrases = diffCfg.phrases.length;
-  G.timeLimit = diffCfg.timeLimit || (diff === "easy" ? 40 : diff === "medium" ? 50 : 60);
+  G.timeLimit = diffCfg.timeLimit || (diff === "easy" ? 60 : diff === "medium" ? 80 : 100);
   G.timeLimitMs = G.timeLimit * 1000;
   G.urgentShoutDone = false;
   G.overtimeShoutDone = false;
@@ -322,7 +322,12 @@ function startGame(mode, verse, opts = {}) {
   }
 
   updateBars();
-  $("#peekBtn").disabled = false;
+  G.peeksLeft = 3;
+  const pBtn = $("#peekBtn");
+  if (pBtn) {
+    pBtn.disabled = false;
+    pBtn.textContent = "💡 Peek (3)";
+  }
   showScreen("#game");
   repositionBubbles();
   setTimeout(repositionBubbles, 60);
@@ -379,6 +384,7 @@ function onBubbleTap(word, el, e, player = 1) {
 
   if (ok) {
     SFX.correct();
+    document.querySelectorAll(".word-bubble.peek-target").forEach(b => b.classList.remove("peek-target"));
     el.classList.add("taken");
     const b = G.bubbles.find(x => x.el === el);
     if (b) b.taken = true;
@@ -679,15 +685,44 @@ function resumeGame() {
 }
 function peekHint() {
   if (!G.running || G.paused) return;
+  if (G.peeksLeft === undefined) G.peeksLeft = 3;
+  if (G.peeksLeft <= 0) return;
+
+  G.peeksLeft--;
+  const peekBtn = $("#peekBtn");
+  if (peekBtn) {
+    peekBtn.textContent = `💡 Peek (${G.peeksLeft})`;
+    peekBtn.disabled = true;
+  }
+
   const idx = G.you.placed.length;
   const span = $(`#verseFlow .word[data-i="${idx}"]`);
   if (span) {
     span.style.outline = "3px solid #58b8f0";
     span.style.borderRadius = "8px";
-    setTimeout(() => { span.style.outline = ""; }, 1200);
+    setTimeout(() => { if (span) span.style.outline = ""; }, 2500);
   }
-  $("#peekBtn").disabled = true;
-  setTimeout(() => { $("#peekBtn").disabled = false; }, 8000);
+
+  // Highlight the RIGHT word on the hill to be added
+  const nextWord = G.you.target[idx];
+  if (nextWord) {
+    const bubbleObj = G.bubbles.find(b => !b.taken && b.owner === 1 && b.word === nextWord);
+    if (bubbleObj && bubbleObj.el) {
+      bubbleObj.el.classList.add("peek-target");
+      setTimeout(() => {
+        if (bubbleObj.el) bubbleObj.el.classList.remove("peek-target");
+      }, 4000);
+    }
+    say("#yipeeSay", `Look for: "${nextWord}"! 💡`, "good", 2500);
+    triggerAvatarReaction("happy", `Peek: Tap "${nextWord}"! 💡`, 2500);
+  }
+
+  // Cooldown before next peek can be used (if any peeks left)
+  setTimeout(() => {
+    if (G.peeksLeft > 0 && G.running && !G.paused) {
+      if (peekBtn) peekBtn.disabled = false;
+    }
+  }, 4000);
 }
 function quitGame() {
   G.running = false;

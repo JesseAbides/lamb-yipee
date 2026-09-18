@@ -305,6 +305,26 @@ body {
   25% { transform: translate(-50%, -50%) translateX(-7px); }
   75% { transform: translate(-50%, -50%) translateX(7px); }
 }
+/* Peek highlight: highlights the right word on the hill to be added */
+.word-bubble.peek-target {
+  z-index: 100 !important;
+  border-color: #f59e0b !important;
+  background: linear-gradient(180deg, #fffbeb, #fef3c7) !important;
+  color: #92400e !important;
+  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.45), 0 0 25px rgba(251, 191, 36, 0.8), 0 8px 16px rgba(0,0,0,0.2) !important;
+  animation: peekGlowPulse 0.6s infinite alternate !important;
+  transform: translate(-50%, -50%) scale(1.18) !important;
+}
+@keyframes peekGlowPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1.12);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4), 0 0 16px rgba(251, 191, 36, 0.6);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.22);
+    box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.65), 0 0 30px rgba(251, 191, 36, 0.95), 0 8px 20px rgba(0,0,0,0.25);
+  }
+}
 
 /* ---------- side mascots (stationary, react to taps) ---------- */
 .lamb-side {
