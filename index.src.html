@@ -130,10 +130,11 @@
       <!-- Player avatar stands on the left and reacts to taps -->
             <div class="lamb-side left">
         <div class="say" id="yipeeSay"></div>
-        <div class="player-reaction-overlay hidden" id="playerReactionOverlay">
-          <video class="player-reaction-vid" id="playerReactionVid" playsinline muted></video>
+        <div class="player-avatar-box" id="playerAvatarBox">
+          <img class="player-idle-img" id="playerIdleImg" src="" alt="Player Avatar" />
+          <video class="player-reaction-vid" id="playerReactionVid" playsinline muted loop></video>
         </div>
-        <div id="yipee" class="lamb-anchor"></div>
+        <div id="yipee" class="lamb-anchor" style="display:none"></div>
         <div class="player-tag" id="playerSideTag">🌸 You</div>
       </div>
 

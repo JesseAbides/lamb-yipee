@@ -89,49 +89,58 @@ body {
 }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-/* ---------- Player reaction video overlay (bottom-left character) ---------- */
-.player-reaction-overlay {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(86px, 11vw, 126px);
-  height: clamp(86px, 11vw, 126px);
+/* ---------- Player avatar box (bottom-left character with live reaction videos) ---------- */
+.player-avatar-box {
+  position: relative;
+  width: clamp(88px, 12vw, 118px);
+  height: clamp(88px, 12vw, 118px);
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid #ff9db8;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
-  z-index: 12;
+  border: 4.5px solid #ff9db8;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.20);
   background: #ffffff;
-  transition: border-color .2s, box-shadow .2s, transform .2s;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, box-shadow 0.2s;
 }
-.player-reaction-overlay.happy {
+.player-avatar-box.happy {
   border-color: #5ea83a;
-  box-shadow: 0 0 22px rgba(94,168,58,0.65);
-  animation: bounceHappy 0.5s ease-in-out;
+  box-shadow: 0 0 24px rgba(94,168,58,0.75);
+  animation: bounceAvatarHappy 0.55s ease-in-out;
 }
-.player-reaction-overlay.oops {
+.player-avatar-box.oops {
   border-color: #e06b8e;
-  box-shadow: 0 0 22px rgba(224,107,142,0.65);
-  animation: shakeOops 0.4s ease-in-out;
+  box-shadow: 0 0 24px rgba(224,107,142,0.75);
+  animation: shakeAvatarOops 0.45s ease-in-out;
 }
-@keyframes bounceHappy {
-  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
-  50% { transform: translateX(-50%) translateY(-10px) scale(1.08); }
+@keyframes bounceAvatarHappy {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12px) scale(1.1); }
 }
-@keyframes shakeOops {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  25% { transform: translateX(-50%) rotate(-6deg); }
-  75% { transform: translateX(-50%) rotate(6deg); }
+@keyframes shakeAvatarOops {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-7deg) scale(0.96); }
+  75% { transform: rotate(7deg) scale(0.96); }
 }
-.player-reaction-vid {
+.player-idle-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
   display: block;
   border-radius: 50%;
+}
+.player-reaction-vid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .btn {

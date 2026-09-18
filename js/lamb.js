@@ -774,31 +774,37 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
    video in the bottom-left avatar overlay (#playerReactionOverlay).
    kind = "happy" | "oops"
    --------------------------------------------------------------- */
-function triggerPlayerReaction(kind = "happy", ms = 2000) {
-  const overlay = document.getElementById("playerReactionOverlay");
+function triggerPlayerReaction(kind = "happy", ms = 2200) {
+  const box = document.getElementById("playerAvatarBox");
   const vid = document.getElementById("playerReactionVid");
-  if (!overlay || !vid) return;
+  const img = document.getElementById("playerIdleImg");
+  if (!box || !vid) return;
 
-  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "astro_corgi";
+  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "capybara";
   const videoSrc = getAvatarVideo(avatarId, kind);
-  if (!videoSrc) return;
 
-  overlay.classList.remove("hidden", "happy", "oops");
-  overlay.classList.add(kind === "happy" ? "happy" : "oops");
+  box.classList.remove("happy", "oops");
+  box.classList.add(kind === "happy" ? "happy" : "oops");
 
-  if (vid.getAttribute("src") !== videoSrc) {
-    vid.src = videoSrc;
-    vid.load();
+  if (videoSrc) {
+    if (vid.getAttribute("src") !== videoSrc) {
+      vid.src = videoSrc;
+      vid.load();
+    }
+    vid.currentTime = 0;
+    vid.style.display = "block";
+    if (img) img.style.display = "none";
+    const p = vid.play();
+    if (p !== undefined) p.catch(() => {});
+
+    clearTimeout(box._reactionTimer);
+    box._reactionTimer = setTimeout(() => {
+      box.classList.remove("happy", "oops");
+      vid.style.display = "none";
+      if (img) img.style.display = "block";
+      try { vid.pause(); } catch (e) {}
+    }, ms);
   }
-  vid.currentTime = 0;
-  const p = vid.play();
-  if (p !== undefined) p.catch(() => {});
-
-  clearTimeout(overlay._reactionTimer);
-  overlay._reactionTimer = setTimeout(() => {
-    overlay.classList.add("hidden");
-    try { vid.pause(); } catch (e) {}
-  }, ms);
 }
 
 function triggerYipeeCheer(text, mood = "good", ms = 2200) {

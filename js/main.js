@@ -323,6 +323,18 @@ function startGame(mode, verse, opts = {}) {
   G.yipeeRig = rigLamb($("#yipee"), { id: "y", avatarId: G.you.avatarId });
 
   const petInfo = PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
+  const idleImg = $("#playerIdleImg");
+  if (idleImg) {
+    const imgSrc = getAvatarImg(G.you.avatarId);
+    if (imgSrc) {
+      idleImg.src = imgSrc;
+      idleImg.style.display = "block";
+    }
+  }
+  const reactionVid = $("#playerReactionVid");
+  if (reactionVid) {
+    reactionVid.style.display = "none";
+  }
   const sideTag = $("#playerSideTag");
   if (sideTag) sideTag.textContent = `${petInfo.icon} ${petInfo.name} (${G.you.name})`;
 
