@@ -23,7 +23,8 @@ const AVATAR_IMAGES = {
   chef_bunny: "/*__IMG_CHEF_BUNNY__*/",
   lofi_hamster: "/*__IMG_LOFI_HAMSTER__*/",
   rockstar_parrot: "/*__IMG_ROCKSTAR_PARROT__*/",
-  astro_corgi: "/*__IMG_ASTRO_CORGI__*/"
+  astro_corgi: "/*__IMG_ASTRO_CORGI__*/",
+  scout_pup: "/*__IMG_SCOUT_PUP__*/"
 };
 
 function getAvatarImg(id) {
@@ -40,7 +41,8 @@ function getAvatarImg(id) {
     chef_bunny: "assets/avatars/chef_bunny.jpg",
     lofi_hamster: "assets/avatars/lofi_hamster.jpg",
     rockstar_parrot: "assets/avatars/rockstar_parrot.jpg",
-    astro_corgi: "assets/avatars/astro_corgi.jpg"
+    astro_corgi: "assets/avatars/astro_corgi.jpg",
+    scout_pup: "assets/avatars/scout_pup.jpg"
   };
   return map[id] || "";
 }
@@ -56,6 +58,7 @@ const PET_AVATARS = [
   { id: "lofi_hamster",   name: "Beats",    icon: "🎧", role: "Lo-Fi Hamster",  desc: "Vibing to sweet gospel lo-fi beats & cozy tunes", imgKey: "lofi_hamster", tint: "#f3effa", wool: "#f5f0fc" },
   { id: "rockstar_parrot",name: "Ziggy",    icon: "🎸", role: "Rockstar Parrot",desc: "Singing praise songs at max volume with punk energy", imgKey: "rockstar_parrot", tint: "#fff8ea", wool: "#fef5dd" },
   { id: "astro_corgi",    name: "Astro",    icon: "🚀", role: "Star Corgi",      desc: "Floating across the cosmos exploring the heavens", imgKey: "astro_corgi", tint: "#edf4fc", wool: "#e5f1fc" },
+  { id: "scout_pup",      name: "Scout",    icon: "🧭", role: "Explorer Pup",   desc: "Joyful trail scout guided by truth, compass & big wagging spirit", imgKey: "scout_pup", tint: "#fff8eb", wool: "#fceed4" },
   { id: "lamb",           name: "Yipee",    icon: "🐑", role: "Classic Lamb",   desc: "The beloved fluffy sheep of green pastures", imgKey: null, tint: "#fdf6e8", wool: "#fdf6e8" },
   { id: "royal",          name: "Prince Pip",icon: "👑", role: "Royal Highness", desc: "Small majesty, big heart and golden crown", imgKey: null, tint: "#fffbe8", wool: "#fef9e2" }
 ];

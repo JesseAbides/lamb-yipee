@@ -43,7 +43,8 @@ const avatars = {
   "/*__IMG_CHEF_BUNNY__*/": toBase64Uri("assets/avatars/chef_bunny.jpg"),
   "/*__IMG_LOFI_HAMSTER__*/": toBase64Uri("assets/avatars/lofi_hamster.jpg"),
   "/*__IMG_ROCKSTAR_PARROT__*/": toBase64Uri("assets/avatars/rockstar_parrot.jpg"),
-  "/*__IMG_ASTRO_CORGI__*/": toBase64Uri("assets/avatars/astro_corgi.jpg")
+  "/*__IMG_ASTRO_CORGI__*/": toBase64Uri("assets/avatars/astro_corgi.jpg"),
+  "/*__IMG_SCOUT_PUP__*/": toBase64Uri("assets/avatars/scout_pup.jpg")
 };
 
 for (const [placeholder, dataUri] of Object.entries(avatars)) {
