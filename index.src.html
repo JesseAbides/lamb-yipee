@@ -90,24 +90,7 @@
   </div>
 
   <div class="stage">
-        <div class="hill-area" id="hillArea">
-      <div class="sun"></div>
-      <div class="hill"></div>
-
-      <!-- Player avatar stands on the left and reacts to taps -->
-      <div class="lamb-side left">
-        <div class="say" id="yipeeSay"></div>
-        <div id="yipee" class="lamb-anchor"></div>
-        <div class="player-tag" id="playerSideTag">🌸 You</div>
-      </div>
-
-      <!-- Rival lamb stands on the right (duo modes) -->
-      <div class="lamb-side right" id="rivalSide" style="display:none">
-        <div class="say" id="rivalSay"></div>
-        <div class="rival-dot" id="rivalDot">🐏<span class="tag"></span></div>
-      </div>
-    </div>
-
+    <!-- Scripture board placed right under HUD (image 3) with height lessened by half -->
     <div class="board-area">
       <div class="board" id="board1">
         <div class="owner-tag" id="ownerTag1" style="display:none">🐑 <b>You</b> — tap your side of the hill</div>
@@ -131,6 +114,25 @@
         <span id="barThemName">🐏 Rival</span>
         <div class="track"><div class="fill" id="barThemFill"></div></div>
         <span class="pct" id="barThemPct">0%</span>
+      </div>
+    </div>
+
+    <!-- Hill area below the board with open sky, clouds & bubbles -->
+    <div class="hill-area" id="hillArea">
+      <div class="sun"></div>
+      <div class="hill"></div>
+
+      <!-- Player avatar stands on the left and reacts to taps -->
+      <div class="lamb-side left">
+        <div class="say" id="yipeeSay"></div>
+        <div id="yipee" class="lamb-anchor"></div>
+        <div class="player-tag" id="playerSideTag">🌸 You</div>
+      </div>
+
+      <!-- Rival lamb stands on the right (duo modes) -->
+      <div class="lamb-side right" id="rivalSide" style="display:none">
+        <div class="say" id="rivalSay"></div>
+        <div class="rival-dot" id="rivalDot">🐏<span class="tag"></span></div>
       </div>
     </div>
   </div>
@@ -195,7 +197,8 @@
 
 <!-- ================= CUSTOMIZE PET & NAME MODAL ================= -->
 <div id="profileModal" class="modal-back hidden">
-  <div class="modal profile-modal-card">
+  <div class="modal profile-modal-card" style="position:relative">
+    <button class="modal-close-icon" id="btnCloseProfileX" aria-label="Close">✕</button>
     <h2>🐾 Customize Pet & Name</h2>
     <p style="margin:2px 0 12px;color:var(--ink-soft);font-size:14px">Choose your cute animal avatar and racer name!</p>
 

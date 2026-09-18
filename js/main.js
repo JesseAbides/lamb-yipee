@@ -911,8 +911,12 @@ function wire() {
 
   const btnEdit = $("#btnEditProfile");
   if (btnEdit) btnEdit.addEventListener("click", openProfileModal);
+  const profCard = $("#profileCard");
+  if (profCard) profCard.addEventListener("click", openProfileModal);
   const btnCloseP = $("#btnCloseProfile");
   if (btnCloseP) btnCloseP.addEventListener("click", closeProfileModal);
+  const btnClosePX = $("#btnCloseProfileX");
+  if (btnClosePX) btnClosePX.addEventListener("click", closeProfileModal);
   const btnSaveP = $("#btnSaveProfile");
   if (btnSaveP) btnSaveP.addEventListener("click", saveProfile);
   const profModal = $("#profileModal");
