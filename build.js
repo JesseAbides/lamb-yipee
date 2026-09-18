@@ -38,7 +38,12 @@ const avatars = {
   "/*__IMG_NINJA_FOX__*/": toBase64Uri("assets/avatars/ninja_fox.jpg"),
   "/*__IMG_SCHOLAR_TURTLE__*/": toBase64Uri("assets/avatars/scholar_turtle.jpg"),
   "/*__IMG_GAMER_PANDA__*/": toBase64Uri("assets/avatars/gamer_panda.jpg"),
-  "/*__IMG_BARISTA_OTTER__*/": toBase64Uri("assets/avatars/barista_otter.jpg")
+  "/*__IMG_BARISTA_OTTER__*/": toBase64Uri("assets/avatars/barista_otter.jpg"),
+  "/*__IMG_DETECTIVE_CAT__*/": toBase64Uri("assets/avatars/detective_cat.jpg"),
+  "/*__IMG_CHEF_BUNNY__*/": toBase64Uri("assets/avatars/chef_bunny.jpg"),
+  "/*__IMG_LOFI_HAMSTER__*/": toBase64Uri("assets/avatars/lofi_hamster.jpg"),
+  "/*__IMG_ROCKSTAR_PARROT__*/": toBase64Uri("assets/avatars/rockstar_parrot.jpg"),
+  "/*__IMG_ASTRO_CORGI__*/": toBase64Uri("assets/avatars/astro_corgi.jpg")
 };
 
 for (const [placeholder, dataUri] of Object.entries(avatars)) {

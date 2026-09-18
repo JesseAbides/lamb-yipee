@@ -18,7 +18,12 @@ const AVATAR_IMAGES = {
   ninja_fox: "/*__IMG_NINJA_FOX__*/",
   scholar_turtle: "/*__IMG_SCHOLAR_TURTLE__*/",
   gamer_panda: "/*__IMG_GAMER_PANDA__*/",
-  barista_otter: "/*__IMG_BARISTA_OTTER__*/"
+  barista_otter: "/*__IMG_BARISTA_OTTER__*/",
+  detective_cat: "/*__IMG_DETECTIVE_CAT__*/",
+  chef_bunny: "/*__IMG_CHEF_BUNNY__*/",
+  lofi_hamster: "/*__IMG_LOFI_HAMSTER__*/",
+  rockstar_parrot: "/*__IMG_ROCKSTAR_PARROT__*/",
+  astro_corgi: "/*__IMG_ASTRO_CORGI__*/"
 };
 
 function getAvatarImg(id) {
@@ -30,7 +35,12 @@ function getAvatarImg(id) {
     ninja_fox: "assets/avatars/ninja_fox.jpg",
     scholar_turtle: "assets/avatars/scholar_turtle.jpg",
     gamer_panda: "assets/avatars/gamer_panda.jpg",
-    barista_otter: "assets/avatars/barista_otter.jpg"
+    barista_otter: "assets/avatars/barista_otter.jpg",
+    detective_cat: "assets/avatars/detective_cat.jpg",
+    chef_bunny: "assets/avatars/chef_bunny.jpg",
+    lofi_hamster: "assets/avatars/lofi_hamster.jpg",
+    rockstar_parrot: "assets/avatars/rockstar_parrot.jpg",
+    astro_corgi: "assets/avatars/astro_corgi.jpg"
   };
   return map[id] || "";
 }
@@ -41,8 +51,12 @@ const PET_AVATARS = [
   { id: "scholar_turtle", name: "Shelldon", icon: "🐢", role: "Scholar Turtle", desc: "Wise librarian with golden spectacles & watch", imgKey: "scholar_turtle", tint: "#f2faee", wool: "#edf5e8" },
   { id: "gamer_panda",    name: "Pixel",    icon: "🎮", role: "Gamer Panda",    desc: "Pro esports streamer with RGB headset & GG hoodie", imgKey: "gamer_panda", tint: "#f0f2f5", wool: "#ffffff" },
   { id: "barista_otter",  name: "Mocha",    icon: "☕", role: "Barista Otter",  desc: "Cozy coffee artisan crafting fresh daily latte art", imgKey: "barista_otter", tint: "#fff8eb", wool: "#fdf0e0" },
+  { id: "detective_cat",  name: "Shadow",   icon: "🕵️‍♂️", role: "Detective Cat",  desc: "Sharp-eyed sleuth uncovering hidden word clues", imgKey: "detective_cat", tint: "#edf0f7", wool: "#e2e6f0" },
+  { id: "chef_bunny",     name: "Barnaby",  icon: "👨‍🍳", role: "Pastry Bunny",   desc: "Baking sweet daily treats & joyful verse cookies", imgKey: "chef_bunny", tint: "#fff4f0", wool: "#fff9f5" },
+  { id: "lofi_hamster",   name: "Beats",    icon: "🎧", role: "Lo-Fi Hamster",  desc: "Vibing to sweet gospel lo-fi beats & cozy tunes", imgKey: "lofi_hamster", tint: "#f3effa", wool: "#f5f0fc" },
+  { id: "rockstar_parrot",name: "Ziggy",    icon: "🎸", role: "Rockstar Parrot",desc: "Singing praise songs at max volume with punk energy", imgKey: "rockstar_parrot", tint: "#fff8ea", wool: "#fef5dd" },
+  { id: "astro_corgi",    name: "Astro",    icon: "🚀", role: "Star Corgi",      desc: "Floating across the cosmos exploring the heavens", imgKey: "astro_corgi", tint: "#edf4fc", wool: "#e5f1fc" },
   { id: "lamb",           name: "Yipee",    icon: "🐑", role: "Classic Lamb",   desc: "The beloved fluffy sheep of green pastures", imgKey: null, tint: "#fdf6e8", wool: "#fdf6e8" },
-  { id: "cosmo",          name: "Cosmo",    icon: "🚀", role: "Star Explorer",  desc: "Exploring the heavens with cosmic curiosity", imgKey: null, tint: "#e8f7ff", wool: "#e5f4fc" },
   { id: "royal",          name: "Prince Pip",icon: "👑", role: "Royal Highness", desc: "Small majesty, big heart and golden crown", imgKey: null, tint: "#fffbe8", wool: "#fef9e2" }
 ];
 
