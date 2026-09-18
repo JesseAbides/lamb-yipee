@@ -581,24 +581,66 @@ body {
   box-shadow: 0 0 0 3px #9ed86b, 0 6px 14px rgba(94,168,58,0.22);
   transform: scale(1.04);
 }
+.avatar-card .av-preview-box {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 8px;
+}
 .avatar-card .av-img-wrap {
-  width: 72px; height: 72px;
-  margin: 0 auto 6px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #ffb8cf;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  background: #fff;
-  display: flex; align-items: center; justify-content: center;
+  border: 3.5px solid #ffb8cf;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .avatar-card .av-img {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
   transition: transform .2s ease;
 }
 .avatar-card:hover .av-img {
   transform: scale(1.08);
 }
-.avatar-card .av-icon { font-size: 38px; line-height: 1.1; margin-bottom: 4px; }
+.avatar-card .av-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  background: #ffffff;
+  border: 2px solid #ffb8cf;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+.avatar-card .av-icon {
+  font-size: 38px;
+  line-height: 1.1;
+  margin: 0 auto 8px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #fff0f6;
+  border: 3.5px solid #ffb8cf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .avatar-card .av-name { font-size: 15px; font-weight: 800; color: var(--ink); }
 .avatar-card .av-role { font-size: 11px; font-weight: 700; color: #7a6a55; margin-top: 1px; }
 .avatar-card .av-desc { font-size: 10px; color: #9c8a74; margin-top: 3px; line-height: 1.25; }
@@ -1170,24 +1212,24 @@ function splitIntoPhrases(text) {
 }
 
 const TIME_LIMITS = {
-  easy: 20,
-  medium: 30,
-  hard: 40
+  easy: 40,
+  medium: 50,
+  hard: 60
 };
 
 function getDifficultyConfig(diff, verse) {
   const tokens = tokenize(verse.text);
   const total = tokens.length;
-  const timeLimit = TIME_LIMITS[diff] || 30;
+  const timeLimit = TIME_LIMITS[diff] || 50;
 
   if (diff === "easy") {
-    // Easy: 20 seconds, 50% on board, 50% to be added, 1 incorrect word
+    // Easy: 40 seconds, 50% on board, 50% to be added, 1 incorrect word
     const prefilledCount = Math.floor(total * 0.5);
     const prefilled = tokens.slice(0, prefilledCount);
     const needed = tokens.slice(prefilledCount);
     return {
       type: "easy",
-      timeLimit: 20,
+      timeLimit: 40,
       prefilledIndices: Array.from({ length: prefilledCount }, (_, i) => i),
       prefilledWords: prefilled,
       neededWords: needed,
@@ -1195,19 +1237,19 @@ function getDifficultyConfig(diff, verse) {
       phrases: [tokens]
     };
   } else if (diff === "medium") {
-    // Medium: 30 seconds, phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
+    // Medium: 50 seconds, phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
     const phrases = splitIntoPhrases(verse.text);
     return {
       type: "medium",
-      timeLimit: 30,
+      timeLimit: 50,
       phrases: phrases,
       distractorCount: 1
     };
   } else {
-    // Hard: 40 seconds, complete whole verse, 0 revealed, 2 incorrect words
+    // Hard: 60 seconds, complete whole verse, 0 revealed, 2 incorrect words
     return {
       type: "hard",
-      timeLimit: 40,
+      timeLimit: 60,
       prefilledIndices: [],
       prefilledWords: [],
       neededWords: tokens,
@@ -1284,7 +1326,8 @@ const gradeOf = (ms, timeLimitSec) => {
     return t < 20 ? "RADIANT ✨" : t < 30 ? "GOLDEN 🥇" : t < 45 ? "BRIGHT 🥈" : "STEADY 🥉";
   }
   const lim = timeLimitSec;
-  return t <= lim * 0.55 ? "RADIANT ✨" : t <= lim * 0.8 ? "GOLDEN 🥇" : t <= lim ? "BRIGHT 🥈" : "TIME'S UP ⏱️";
+  if (t > lim) return "OVERTIME ⏱️";
+  return t <= lim * 0.55 ? "RADIANT ✨" : t <= lim * 0.8 ? "GOLDEN 🥇" : "BRIGHT 🥈";
 };
 
 const starsOf = (ms, timeLimitSec) => {
@@ -1293,6 +1336,7 @@ const starsOf = (ms, timeLimitSec) => {
     return t < 20 ? 3 : t < 30 ? 2 : 1;
   }
   const lim = timeLimitSec;
+  if (t > lim) return 0; // Over time limit: no stars, but time is recorded
   return t <= lim * 0.55 ? 3 : t <= lim * 0.8 ? 2 : 1;
 };
 
@@ -2171,9 +2215,10 @@ function startGame(mode, verse, opts = {}) {
   G.difficultyConfig = diffCfg;
   G.currentPhraseIdx = 0;
   G.totalPhrases = diffCfg.phrases.length;
-  G.timeLimit = diffCfg.timeLimit || (diff === "easy" ? 20 : diff === "medium" ? 30 : 40);
+  G.timeLimit = diffCfg.timeLimit || (diff === "easy" ? 40 : diff === "medium" ? 50 : 60);
   G.timeLimitMs = G.timeLimit * 1000;
   G.urgentShoutDone = false;
+  G.overtimeShoutDone = false;
 
   const timerEl = $("#timer");
   if (timerEl) {
@@ -2563,25 +2608,31 @@ function tick() {
   if (!G.running) return;
   if (!G.paused && !G.you.done) {
     const elapsed = performance.now() - G.startAt;
-    const remainingMs = Math.max(0, G.timeLimitMs - elapsed);
     const timerEl = $("#timer");
     if (timerEl) {
-      timerEl.textContent = `⏱️ ${(remainingMs / 1000).toFixed(1)}s`;
-      if (remainingMs <= 5000) {
-        timerEl.classList.add("urgent");
-        if (!G.urgentShoutDone) {
-          G.urgentShoutDone = true;
-          try { SFX.wrong(); } catch (e) {}
-          triggerYipeeCheer("Hurry! 5 seconds left! ⚡", "bad", 1800);
+      if (elapsed <= G.timeLimitMs) {
+        const remainingMs = G.timeLimitMs - elapsed;
+        timerEl.textContent = `⏱️ ${(remainingMs / 1000).toFixed(1)}s`;
+        if (remainingMs <= 5000) {
+          timerEl.classList.add("urgent");
+          if (!G.urgentShoutDone) {
+            G.urgentShoutDone = true;
+            try { SFX.wrong(); } catch (e) {}
+            triggerYipeeCheer("Hurry! 5 seconds left! ⚡", "bad", 1800);
+          }
+        } else {
+          timerEl.classList.remove("urgent");
         }
       } else {
-        timerEl.classList.remove("urgent");
+        // Overtime: game continues! Time recorded, but no stars
+        const overSec = ((elapsed - G.timeLimitMs) / 1000).toFixed(1);
+        timerEl.classList.add("urgent");
+        timerEl.textContent = `⏱️ +${overSec}s`;
+        if (!G.overtimeShoutDone) {
+          G.overtimeShoutDone = true;
+          triggerYipeeCheer("Time limit reached! Keep going to finish! 💪", "good", 2400);
+        }
       }
-    }
-
-    if (remainingMs <= 0) {
-      finishRace("timeout");
-      return;
     }
 
     if (G.rivalKind === "ghost" && G.rival && !G.rival.done) {
@@ -2652,7 +2703,7 @@ function quitGame() {
    ============================================================ */
 function finishRace(winner) {
   if (G.finished) return;              // already finished this race
-  if (!G.running && winner !== "you" && winner !== "timeout") return;
+  if (!G.running && winner !== "you") return;
   G.finished = true;
   G.running = false;
   clearInterval(G.cpuTimer);
@@ -2661,10 +2712,9 @@ function finishRace(winner) {
 
   const youMs = G.you.done ? G.you.doneAt - G.startAt : null;
   const rivalMs = G.rival && G.rival.done ? G.rival.doneAt - G.startAt : null;
-  const isTimeout = winner === "timeout";
   const youWon = winner === "you";
 
-  // stats
+  // stats: if it pass the timer, they will not get star (stars = 0), but their time/minutes will be recorded!
   const stars = youMs != null ? starsOf(youMs, G.timeLimit) : 0;
   Store.addTotals({ stars, win: youWon ? 1 : 0, race: 1 });
   let newBest = false;
@@ -2675,10 +2725,6 @@ function finishRace(winner) {
     SFX.finish();
     confettiBurst();
     if (G.yipeeRig) G.yipeeRig.rejoice(1300);
-  } else if (isTimeout) {
-    SFX.lose();
-    if (G.yipeeRig) G.yipeeRig.sad(1200);
-    triggerYipeeCheer("Time's up! Don't give up, try again! ⏰", "bad", 2500);
   } else {
     SFX.lose();
     if (G.yipeeRig) G.yipeeRig.sad(1100);
@@ -2686,17 +2732,16 @@ function finishRace(winner) {
 }
 
 function showResults(winner, youMs, rivalMs, stars, newBest) {
-  const isTimeout = winner === "timeout";
   const youWon = winner === "you";
+  const isOvertime = youMs != null && youMs > G.timeLimitMs;
 
   $("#resTitle").textContent =
-    isTimeout ? "Time's Up! ⏰" :
     G.mode === "duo" ? (youWon ? `${G.you.name} wins! 🎉` : `${G.rival.name} wins! 🐏`) :
-    youWon ? "Verse complete! 🎉" : "So close! 🐑";
+    youWon ? (isOvertime ? "Verse complete! ⏱️" : "Verse complete! 🎉") : "So close! 🐑";
   $("#resVerse").textContent = "📖 " + G.verse.ref + " · NIV — " + G.verse.text;
-  $("#resTime").textContent = isTimeout ? `Time's Up (Limit: ${G.timeLimit}s)` : (youMs != null ? fmt(youMs) : "DNF");
-  $("#resGrade").textContent = isTimeout ? "Out of Time ⏳" : (youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!");
-  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars));
+  $("#resTime").textContent = youMs != null ? (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs)) : "DNF";
+  $("#resGrade").textContent = youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!";
+  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isOvertime ? " (Over limit)" : "");
   $("#resBest").textContent = newBest ? "🏆 NEW PERSONAL BEST!" :
     ("Best: " + fmt(Store.bestFor(G.verse.ref)));
   $("#resMistakes").textContent = `Mistakes: ${G.you.mistakes} · Taps: ${G.you.taps} · Limit: ${G.timeLimit}s`;
@@ -2782,7 +2827,12 @@ function openProfileModal() {
     card.className = "avatar-card" + (pet.id === selectedAvatarId ? " sel" : "");
     const imgSrc = getAvatarImg(pet.id);
     const mediaHtml = imgSrc
-      ? `<div class="av-img-wrap"><img class="av-img" src="${imgSrc}" alt="${pet.name}" /><span class="av-badge">${pet.icon}</span></div>`
+      ? `<div class="av-preview-box">
+           <div class="av-img-wrap">
+             <img class="av-img" src="${imgSrc}" alt="${pet.name}" />
+           </div>
+           <span class="av-badge">${pet.icon}</span>
+         </div>`
       : `<div class="av-icon">${pet.icon}</div>`;
 
     card.innerHTML = `
@@ -2831,9 +2881,9 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   const grid = $("#levelGrid");
   grid.innerHTML = "";
   const cards = [
-    { diff: "easy",   icon: "🌟",       name: "Easy",   time: "20s", desc: "⏱️ 20s to solve · 50% pre-filled board · 1 trick word!" },
-    { diff: "medium", icon: "🌟🌟",     name: "Medium", time: "30s", desc: "⏱️ 30s to solve · Phrase-by-phrase · 1 trick word per phrase!" },
-    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   time: "40s", desc: "⏱️ 40s to solve · Full verse from memory · 2+ trick words!" }
+    { diff: "easy",   icon: "🌟",       name: "Easy",   time: "40s", desc: "⏱️ 40s target · 50% pre-filled board · 1 trick word!" },
+    { diff: "medium", icon: "🌟🌟",     name: "Medium", time: "50s", desc: "⏱️ 50s target · Phrase-by-phrase · 1 trick word per phrase!" },
+    { diff: "hard",   icon: "🌟🌟🌟", name: "Hard",   time: "60s", desc: "⏱️ 60s target · Full verse from memory · 2+ trick words!" }
   ];
   cards.forEach(c => {
     const card = document.createElement("div");

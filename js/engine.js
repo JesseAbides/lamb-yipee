@@ -118,24 +118,24 @@ function splitIntoPhrases(text) {
 }
 
 const TIME_LIMITS = {
-  easy: 20,
-  medium: 30,
-  hard: 40
+  easy: 40,
+  medium: 50,
+  hard: 60
 };
 
 function getDifficultyConfig(diff, verse) {
   const tokens = tokenize(verse.text);
   const total = tokens.length;
-  const timeLimit = TIME_LIMITS[diff] || 30;
+  const timeLimit = TIME_LIMITS[diff] || 50;
 
   if (diff === "easy") {
-    // Easy: 20 seconds, 50% on board, 50% to be added, 1 incorrect word
+    // Easy: 40 seconds, 50% on board, 50% to be added, 1 incorrect word
     const prefilledCount = Math.floor(total * 0.5);
     const prefilled = tokens.slice(0, prefilledCount);
     const needed = tokens.slice(prefilledCount);
     return {
       type: "easy",
-      timeLimit: 20,
+      timeLimit: 40,
       prefilledIndices: Array.from({ length: prefilledCount }, (_, i) => i),
       prefilledWords: prefilled,
       neededWords: needed,
@@ -143,19 +143,19 @@ function getDifficultyConfig(diff, verse) {
       phrases: [tokens]
     };
   } else if (diff === "medium") {
-    // Medium: 30 seconds, phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
+    // Medium: 50 seconds, phrase-by-phrase, initial word on board for each phrase, 1 incorrect word per phrase
     const phrases = splitIntoPhrases(verse.text);
     return {
       type: "medium",
-      timeLimit: 30,
+      timeLimit: 50,
       phrases: phrases,
       distractorCount: 1
     };
   } else {
-    // Hard: 40 seconds, complete whole verse, 0 revealed, 2 incorrect words
+    // Hard: 60 seconds, complete whole verse, 0 revealed, 2 incorrect words
     return {
       type: "hard",
-      timeLimit: 40,
+      timeLimit: 60,
       prefilledIndices: [],
       prefilledWords: [],
       neededWords: tokens,
@@ -232,7 +232,8 @@ const gradeOf = (ms, timeLimitSec) => {
     return t < 20 ? "RADIANT ✨" : t < 30 ? "GOLDEN 🥇" : t < 45 ? "BRIGHT 🥈" : "STEADY 🥉";
   }
   const lim = timeLimitSec;
-  return t <= lim * 0.55 ? "RADIANT ✨" : t <= lim * 0.8 ? "GOLDEN 🥇" : t <= lim ? "BRIGHT 🥈" : "TIME'S UP ⏱️";
+  if (t > lim) return "OVERTIME ⏱️";
+  return t <= lim * 0.55 ? "RADIANT ✨" : t <= lim * 0.8 ? "GOLDEN 🥇" : "BRIGHT 🥈";
 };
 
 const starsOf = (ms, timeLimitSec) => {
@@ -241,6 +242,7 @@ const starsOf = (ms, timeLimitSec) => {
     return t < 20 ? 3 : t < 30 ? 2 : 1;
   }
   const lim = timeLimitSec;
+  if (t > lim) return 0; // Over time limit: no stars, but time is recorded
   return t <= lim * 0.55 ? 3 : t <= lim * 0.8 ? 2 : 1;
 };
 
