@@ -274,12 +274,31 @@ body {
 .verse-card {
   background: var(--board); border: 3px solid var(--board-edge);
   border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 10px 12px; cursor: pointer; transition: transform .1s;
+  padding: 12px 14px; cursor: pointer; transition: transform .14s, box-shadow .14s, border-color .14s;
+  display: flex;
+  flex-direction: column;
 }
-.verse-card:hover { transform: translateY(-2px); }
+.verse-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: #e8b64c;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+}
 .verse-card .ref { font-weight: 800; font-size: 15px; }
 .verse-card .snippet { color: var(--ink-soft); font-size: 12.5px; margin-top: 3px; }
 .verse-card .meta { margin-top: 6px; font-size: 12px; color: #b8860b; }
+.verse-card .card-play-action {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+.verse-card .play-level-btn {
+  padding: 6px 18px !important;
+  font-size: 13.5px !important;
+  border-width: 2px 2px 3px 2px !important;
+  margin: 0 !important;
+  pointer-events: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.12) !important;
+}
 .topbar {
   position: sticky; top: 0; z-index: 5;
   width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -684,19 +703,48 @@ body {
   font-weight: 600;
   padding-right: 4px;
 }
-.board .word { display: inline-block; margin: 0 5px 4px 0; padding: 1px 8px; border-radius: 9px; }
+.board .word {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  vertical-align: middle;
+  transition: all 0.18s ease;
+}
+.board .word.prefilled {
+  background: linear-gradient(180deg, #e8f5e9, #c8e6c9);
+  border: 2px solid #81c784;
+  color: #2e7d32;
+  font-weight: 700;
+}
 .board .word.filled {
   background: linear-gradient(180deg, #ffe9a8, #ffd45e);
   border: 2px solid #e8b64c;
   color: #6b4a00;
   animation: pop .25s;
 }
-/* empty slot: totally invisible — the scripture must NOT be readable.
-   Only the tapped words appear, in order, as golden chips. */
+/* empty slot: clear word guide line proportional to letter length */
 .board .word.slot {
-  background: transparent;
-  border: 2px solid transparent;
+  display: inline-block;
+  min-width: 28px;
+  height: 22px;
+  line-height: 20px;
+  background: rgba(184, 134, 11, 0.09);
+  border-bottom: 2.5px dashed #c4962c;
+  border-radius: 4px;
   color: transparent;
+  vertical-align: middle;
+  margin: 0 3px 5px 0;
+  box-sizing: border-box;
+}
+.board .punct-guide {
+  display: inline-block;
+  font-weight: 800;
+  color: #8a5a22;
+  font-size: clamp(14px, 1.5vw, 18px);
+  margin-left: -2px;
+  margin-right: 4px;
+  vertical-align: middle;
 }
 @keyframes pop { 0% { transform: scale(.5); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
@@ -3894,15 +3942,35 @@ function startGame(mode, verse, opts = {}) {
     flowEl.innerHTML = "";
     targetWords.forEach((word, i) => {
       const s = document.createElement("span");
-      if (prefilledIndices.includes(i)) {
+      const isPrefilled = prefilledIndices.includes(i);
+
+      // Calculate clean word length for proportional slot line width
+      const cleanWord = word.replace(/^[“"']+|[,\.;:!\?"”'’—]+$/g, "");
+      const punctMatch = word.match(/[,\.;:!\?"”'’—]+$/);
+      const trailingPunct = punctMatch ? punctMatch[0] : "";
+      const letterCount = cleanWord.length || 3;
+      const slotWidth = Math.max(28, Math.min(110, letterCount * 10 + 16));
+
+      if (isPrefilled) {
         s.className = "word prefilled";
         s.textContent = word;
       } else {
         s.className = "word slot";
         s.textContent = "\u00a0";
+        s.style.minWidth = `${slotWidth}px`;
       }
       s.dataset.i = i;
       flowEl.appendChild(s);
+
+      // Trailing punctuation guide (comma, period, etc.) displayed next to the line slot
+      if (!isPrefilled && trailingPunct) {
+        const pSpan = document.createElement("span");
+        pSpan.className = "punct-guide";
+        pSpan.dataset.pi = i;
+        pSpan.textContent = trailingPunct;
+        flowEl.appendChild(pSpan);
+      }
+
       flowEl.appendChild(document.createTextNode(" "));
     });
     if (refEl) refEl.textContent = verse.ref;
@@ -4219,11 +4287,16 @@ function fillBoardWord(idx, player = 1, word = "", isPrefilled = false) {
   if (span) {
     span.textContent = word;
     span.classList.remove("slot");
+    span.style.minWidth = "";
     if (isPrefilled) {
       span.classList.add("prefilled");
     } else {
       span.classList.add("filled");
     }
+  }
+  const punctGuide = $(`${root} .punct-guide[data-pi="${idx}"]`);
+  if (punctGuide) {
+    punctGuide.style.display = "none";
   }
 }
 
@@ -4659,7 +4732,10 @@ function openLevelSelect(mode, rivalKind, rivalName) {
     card.className = "verse-card";
     card.innerHTML = `<div class="ref">${c.icon} ${c.name} <span class="time-pill">⏱️ ${c.time}</span></div>
       <div class="snippet">${c.desc}</div>
-      <div class="meta">A random verse is dealt — beat the clock! ⏰</div>`;
+      <div class="meta">A random verse is dealt — beat the clock! ⏰</div>
+      <div class="card-play-action">
+        <button class="btn primary small play-level-btn" tabindex="-1">▶ Play ${c.name}</button>
+      </div>`;
     card.addEventListener("click", () => {
       const verse = pickVerse(c.diff);
       G.pendingDifficulty = c.diff;

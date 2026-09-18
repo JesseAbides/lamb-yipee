@@ -255,15 +255,35 @@ function startGame(mode, verse, opts = {}) {
     flowEl.innerHTML = "";
     targetWords.forEach((word, i) => {
       const s = document.createElement("span");
-      if (prefilledIndices.includes(i)) {
+      const isPrefilled = prefilledIndices.includes(i);
+
+      // Calculate clean word length for proportional slot line width
+      const cleanWord = word.replace(/^[“"']+|[,\.;:!\?"”'’—]+$/g, "");
+      const punctMatch = word.match(/[,\.;:!\?"”'’—]+$/);
+      const trailingPunct = punctMatch ? punctMatch[0] : "";
+      const letterCount = cleanWord.length || 3;
+      const slotWidth = Math.max(28, Math.min(110, letterCount * 10 + 16));
+
+      if (isPrefilled) {
         s.className = "word prefilled";
         s.textContent = word;
       } else {
         s.className = "word slot";
         s.textContent = "\u00a0";
+        s.style.minWidth = `${slotWidth}px`;
       }
       s.dataset.i = i;
       flowEl.appendChild(s);
+
+      // Trailing punctuation guide (comma, period, etc.) displayed next to the line slot
+      if (!isPrefilled && trailingPunct) {
+        const pSpan = document.createElement("span");
+        pSpan.className = "punct-guide";
+        pSpan.dataset.pi = i;
+        pSpan.textContent = trailingPunct;
+        flowEl.appendChild(pSpan);
+      }
+
       flowEl.appendChild(document.createTextNode(" "));
     });
     if (refEl) refEl.textContent = verse.ref;
@@ -580,11 +600,16 @@ function fillBoardWord(idx, player = 1, word = "", isPrefilled = false) {
   if (span) {
     span.textContent = word;
     span.classList.remove("slot");
+    span.style.minWidth = "";
     if (isPrefilled) {
       span.classList.add("prefilled");
     } else {
       span.classList.add("filled");
     }
+  }
+  const punctGuide = $(`${root} .punct-guide[data-pi="${idx}"]`);
+  if (punctGuide) {
+    punctGuide.style.display = "none";
   }
 }
 
@@ -1020,7 +1045,10 @@ function openLevelSelect(mode, rivalKind, rivalName) {
     card.className = "verse-card";
     card.innerHTML = `<div class="ref">${c.icon} ${c.name} <span class="time-pill">⏱️ ${c.time}</span></div>
       <div class="snippet">${c.desc}</div>
-      <div class="meta">A random verse is dealt — beat the clock! ⏰</div>`;
+      <div class="meta">A random verse is dealt — beat the clock! ⏰</div>
+      <div class="card-play-action">
+        <button class="btn primary small play-level-btn" tabindex="-1">▶ Play ${c.name}</button>
+      </div>`;
     card.addEventListener("click", () => {
       const verse = pickVerse(c.diff);
       G.pendingDifficulty = c.diff;

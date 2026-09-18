@@ -266,12 +266,31 @@ body {
 .verse-card {
   background: var(--board); border: 3px solid var(--board-edge);
   border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 10px 12px; cursor: pointer; transition: transform .1s;
+  padding: 12px 14px; cursor: pointer; transition: transform .14s, box-shadow .14s, border-color .14s;
+  display: flex;
+  flex-direction: column;
 }
-.verse-card:hover { transform: translateY(-2px); }
+.verse-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: #e8b64c;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+}
 .verse-card .ref { font-weight: 800; font-size: 15px; }
 .verse-card .snippet { color: var(--ink-soft); font-size: 12.5px; margin-top: 3px; }
 .verse-card .meta { margin-top: 6px; font-size: 12px; color: #b8860b; }
+.verse-card .card-play-action {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+.verse-card .play-level-btn {
+  padding: 6px 18px !important;
+  font-size: 13.5px !important;
+  border-width: 2px 2px 3px 2px !important;
+  margin: 0 !important;
+  pointer-events: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.12) !important;
+}
 .topbar {
   position: sticky; top: 0; z-index: 5;
   width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -676,19 +695,48 @@ body {
   font-weight: 600;
   padding-right: 4px;
 }
-.board .word { display: inline-block; margin: 0 5px 4px 0; padding: 1px 8px; border-radius: 9px; }
+.board .word {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  vertical-align: middle;
+  transition: all 0.18s ease;
+}
+.board .word.prefilled {
+  background: linear-gradient(180deg, #e8f5e9, #c8e6c9);
+  border: 2px solid #81c784;
+  color: #2e7d32;
+  font-weight: 700;
+}
 .board .word.filled {
   background: linear-gradient(180deg, #ffe9a8, #ffd45e);
   border: 2px solid #e8b64c;
   color: #6b4a00;
   animation: pop .25s;
 }
-/* empty slot: totally invisible — the scripture must NOT be readable.
-   Only the tapped words appear, in order, as golden chips. */
+/* empty slot: clear word guide line proportional to letter length */
 .board .word.slot {
-  background: transparent;
-  border: 2px solid transparent;
+  display: inline-block;
+  min-width: 28px;
+  height: 22px;
+  line-height: 20px;
+  background: rgba(184, 134, 11, 0.09);
+  border-bottom: 2.5px dashed #c4962c;
+  border-radius: 4px;
   color: transparent;
+  vertical-align: middle;
+  margin: 0 3px 5px 0;
+  box-sizing: border-box;
+}
+.board .punct-guide {
+  display: inline-block;
+  font-weight: 800;
+  color: #8a5a22;
+  font-size: clamp(14px, 1.5vw, 18px);
+  margin-left: -2px;
+  margin-right: 4px;
+  vertical-align: middle;
 }
 @keyframes pop { 0% { transform: scale(.5); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
