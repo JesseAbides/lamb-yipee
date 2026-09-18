@@ -978,13 +978,36 @@ body {
 }
 .cheer-avatar {
   order: 1;
-  width: 80px;
-  height: 72px;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.18));
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 4px solid #ff9db8;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.20);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.16));
   animation: yipeeFloat 2s ease-in-out infinite alternate;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cheer-avatar.happy {
+  border-color: #5ea83a;
+  box-shadow: 0 0 20px rgba(94, 168, 58, 0.45);
+}
+.cheer-avatar.oops {
+  border-color: #e06b8e;
+  box-shadow: 0 0 20px rgba(224, 107, 142, 0.45);
+}
+.cheer-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 50%;
 }
 .cheer-bubble {
   order: 2;
@@ -1001,6 +1024,23 @@ body {
   text-align: center;
   line-height: 1.35;
   animation: bubbleWiggle 1.8s ease-in-out infinite alternate;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.cheer-bubble.happy {
+  border-color: #5ea83a;
+  color: #265f10;
+  background: linear-gradient(180deg, #ffffff, #f2faec);
+}
+.cheer-bubble.happy::after {
+  border-bottom-color: #5ea83a;
+}
+.cheer-bubble.oops {
+  border-color: #e06b8e;
+  color: #8c2a47;
+  background: linear-gradient(180deg, #ffffff, #fff2f5);
+}
+.cheer-bubble.oops::after {
+  border-bottom-color: #e06b8e;
 }
 @keyframes bubbleWiggle {
   0% { transform: rotate(-1.5deg); }

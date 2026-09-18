@@ -595,20 +595,120 @@ function rigLamb(container, opts = {}) {
 }
 
 /* ============================================================
-   YIPEE GUEST MASCOT CHEERLEADER POP-UP
+   AVATAR REACTION VIDEOS (HAPPY & OOPS)
    ============================================================ */
-function triggerYipeeCheer(text, mood = "good", ms = 2200) {
+const AVATAR_VIDEOS = {
+  capybara: {
+    happy: "assets/avatars/capybara_celebration.mp4",
+    oops: "assets/avatars/surfer_yogi_capybara.mp4"
+  },
+  ninja_fox: {
+    happy: "assets/avatars/fox_ninja_celebration.mp4",
+    oops: "assets/avatars/fox_ninja_oops.mp4"
+  },
+  scholar_turtle: {
+    happy: "assets/avatars/turtle_professor_celebration.mp4",
+    oops: "assets/avatars/turtle_professor_smile.mp4"
+  },
+  gamer_panda: {
+    happy: "assets/avatars/panda_celebration_dance.mp4",
+    oops: "assets/avatars/gaming_panda_loop.mp4"
+  },
+  barista_otter: {
+    happy: "assets/avatars/joyful_otter_celebration.mp4",
+    oops: "assets/avatars/otter_barista_lattee.mp4"
+  },
+  detective_cat: {
+    happy: "assets/avatars/confetti_cat_celebration.mp4",
+    oops: "assets/avatars/detective_cat_recovery.mp4"
+  },
+  chef_bunny: {
+    happy: "assets/avatars/chef_bunny_celebration.mp4",
+    oops: "assets/avatars/chef_bunny_emotion_loop.mp4"
+  },
+  lofi_hamster: {
+    happy: "assets/avatars/dj_hamster_celebration.mp4",
+    oops: "assets/avatars/neon_dj_hamster.mp4"
+  },
+  rockstar_parrot: {
+    happy: "assets/avatars/punk_parrot_dance.mp4",
+    oops: "assets/avatars/punk_parrot_portrait.mp4"
+  },
+  astro_corgi: {
+    happy: "assets/avatars/corgi_astronaut_celebration.mp4",
+    oops: "assets/avatars/corgi_astronaut_sad_smile.mp4"
+  },
+  scout_pup: {
+    happy: "assets/avatars/golden_retriever_celebration.mp4",
+    oops: "assets/avatars/adventurer_dog_animation.mp4"
+  },
+  lamb: {
+    happy: "assets/avatars/corgi_astronaut_celebration.mp4",
+    oops: "assets/avatars/corgi_astronaut_sad_smile.mp4"
+  },
+  royal: {
+    happy: "assets/avatars/golden_retriever_celebration.mp4",
+    oops: "assets/avatars/adventurer_dog_animation.mp4"
+  }
+};
+
+function getAvatarVideo(avatarId, kind = "happy") {
+  const v = AVATAR_VIDEOS[avatarId] || AVATAR_VIDEOS.astro_corgi;
+  return (v && v[kind]) || "";
+}
+
+function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
   const pop = document.getElementById("yipeeCheerPop");
   if (!pop) return;
   const bubble = pop.querySelector(".cheer-bubble");
-  if (bubble) bubble.textContent = text;
+  const avatarBox = document.getElementById("cheerAvatarBox");
+  const video = document.getElementById("cheerVideo");
+  const svg = document.getElementById("cheerYipeeSvg");
+  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "astro_corgi";
+  const videoSrc = getAvatarVideo(avatarId, kind);
+
+  if (bubble) {
+    bubble.textContent = text;
+    bubble.classList.remove("happy", "oops");
+    bubble.classList.add(kind === "happy" ? "happy" : "oops");
+  }
+  if (avatarBox) {
+    avatarBox.classList.remove("happy", "oops");
+    avatarBox.classList.add(kind === "happy" ? "happy" : "oops");
+  }
+
+  if (video && videoSrc) {
+    if (video.getAttribute("src") !== videoSrc) {
+      video.src = videoSrc;
+      video.load();
+    }
+    video.currentTime = 0;
+    video.style.display = "block";
+    if (svg) svg.style.display = "none";
+    const p = video.play();
+    if (p !== undefined) p.catch(() => {});
+  } else if (svg) {
+    if (video) video.style.display = "none";
+    svg.style.display = "block";
+  }
+
   pop.classList.remove("hidden", "pop-out");
   pop.classList.add("pop-in");
   clearTimeout(pop._timer);
   pop._timer = setTimeout(() => {
     pop.classList.remove("pop-in");
     pop.classList.add("pop-out");
-    setTimeout(() => pop.classList.add("hidden"), 350);
+    setTimeout(() => {
+      pop.classList.add("hidden");
+      if (video) {
+        try { video.pause(); } catch (e) {}
+      }
+    }, 350);
   }, ms);
+}
+
+function triggerYipeeCheer(text, mood = "good", ms = 2200) {
+  const kind = mood === "good" ? "happy" : "oops";
+  triggerAvatarReaction(kind, text, ms);
 }
 

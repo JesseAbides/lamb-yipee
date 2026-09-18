@@ -986,13 +986,36 @@ body {
 }
 .cheer-avatar {
   order: 1;
-  width: 80px;
-  height: 72px;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.18));
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 4px solid #ff9db8;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.20);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.16));
   animation: yipeeFloat 2s ease-in-out infinite alternate;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cheer-avatar.happy {
+  border-color: #5ea83a;
+  box-shadow: 0 0 20px rgba(94, 168, 58, 0.45);
+}
+.cheer-avatar.oops {
+  border-color: #e06b8e;
+  box-shadow: 0 0 20px rgba(224, 107, 142, 0.45);
+}
+.cheer-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 50%;
 }
 .cheer-bubble {
   order: 2;
@@ -1009,6 +1032,23 @@ body {
   text-align: center;
   line-height: 1.35;
   animation: bubbleWiggle 1.8s ease-in-out infinite alternate;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.cheer-bubble.happy {
+  border-color: #5ea83a;
+  color: #265f10;
+  background: linear-gradient(180deg, #ffffff, #f2faec);
+}
+.cheer-bubble.happy::after {
+  border-bottom-color: #5ea83a;
+}
+.cheer-bubble.oops {
+  border-color: #e06b8e;
+  color: #8c2a47;
+  background: linear-gradient(180deg, #ffffff, #fff2f5);
+}
+.cheer-bubble.oops::after {
+  border-bottom-color: #e06b8e;
 }
 @keyframes bubbleWiggle {
   0% { transform: rotate(-1.5deg); }
@@ -1308,8 +1348,9 @@ body {
 
 <!-- ================= YIPEE GUEST MASCOT CHEERLEADER POP-UP ================= -->
 <div id="yipeeCheerPop" class="yipee-cheer-pop hidden">
-  <div class="cheer-avatar">
-    <div class="cheer-yipee-svg">
+  <div class="cheer-avatar" id="cheerAvatarBox">
+    <video class="cheer-video" id="cheerVideo" playsinline muted loop style="display:none"></video>
+    <div class="cheer-yipee-svg" id="cheerYipeeSvg">
       <svg viewBox="0 0 100 90" width="84" height="76" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="32" fill="#fffdf6"/>
         <circle cx="34" cy="40" r="14" fill="#fdf6e8"/>
@@ -2292,21 +2333,121 @@ function rigLamb(container, opts = {}) {
 }
 
 /* ============================================================
-   YIPEE GUEST MASCOT CHEERLEADER POP-UP
+   AVATAR REACTION VIDEOS (HAPPY & OOPS)
    ============================================================ */
-function triggerYipeeCheer(text, mood = "good", ms = 2200) {
+const AVATAR_VIDEOS = {
+  capybara: {
+    happy: "assets/avatars/capybara_celebration.mp4",
+    oops: "assets/avatars/surfer_yogi_capybara.mp4"
+  },
+  ninja_fox: {
+    happy: "assets/avatars/fox_ninja_celebration.mp4",
+    oops: "assets/avatars/fox_ninja_oops.mp4"
+  },
+  scholar_turtle: {
+    happy: "assets/avatars/turtle_professor_celebration.mp4",
+    oops: "assets/avatars/turtle_professor_smile.mp4"
+  },
+  gamer_panda: {
+    happy: "assets/avatars/panda_celebration_dance.mp4",
+    oops: "assets/avatars/gaming_panda_loop.mp4"
+  },
+  barista_otter: {
+    happy: "assets/avatars/joyful_otter_celebration.mp4",
+    oops: "assets/avatars/otter_barista_lattee.mp4"
+  },
+  detective_cat: {
+    happy: "assets/avatars/confetti_cat_celebration.mp4",
+    oops: "assets/avatars/detective_cat_recovery.mp4"
+  },
+  chef_bunny: {
+    happy: "assets/avatars/chef_bunny_celebration.mp4",
+    oops: "assets/avatars/chef_bunny_emotion_loop.mp4"
+  },
+  lofi_hamster: {
+    happy: "assets/avatars/dj_hamster_celebration.mp4",
+    oops: "assets/avatars/neon_dj_hamster.mp4"
+  },
+  rockstar_parrot: {
+    happy: "assets/avatars/punk_parrot_dance.mp4",
+    oops: "assets/avatars/punk_parrot_portrait.mp4"
+  },
+  astro_corgi: {
+    happy: "assets/avatars/corgi_astronaut_celebration.mp4",
+    oops: "assets/avatars/corgi_astronaut_sad_smile.mp4"
+  },
+  scout_pup: {
+    happy: "assets/avatars/golden_retriever_celebration.mp4",
+    oops: "assets/avatars/adventurer_dog_animation.mp4"
+  },
+  lamb: {
+    happy: "assets/avatars/corgi_astronaut_celebration.mp4",
+    oops: "assets/avatars/corgi_astronaut_sad_smile.mp4"
+  },
+  royal: {
+    happy: "assets/avatars/golden_retriever_celebration.mp4",
+    oops: "assets/avatars/adventurer_dog_animation.mp4"
+  }
+};
+
+function getAvatarVideo(avatarId, kind = "happy") {
+  const v = AVATAR_VIDEOS[avatarId] || AVATAR_VIDEOS.astro_corgi;
+  return (v && v[kind]) || "";
+}
+
+function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
   const pop = document.getElementById("yipeeCheerPop");
   if (!pop) return;
   const bubble = pop.querySelector(".cheer-bubble");
-  if (bubble) bubble.textContent = text;
+  const avatarBox = document.getElementById("cheerAvatarBox");
+  const video = document.getElementById("cheerVideo");
+  const svg = document.getElementById("cheerYipeeSvg");
+  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || "astro_corgi";
+  const videoSrc = getAvatarVideo(avatarId, kind);
+
+  if (bubble) {
+    bubble.textContent = text;
+    bubble.classList.remove("happy", "oops");
+    bubble.classList.add(kind === "happy" ? "happy" : "oops");
+  }
+  if (avatarBox) {
+    avatarBox.classList.remove("happy", "oops");
+    avatarBox.classList.add(kind === "happy" ? "happy" : "oops");
+  }
+
+  if (video && videoSrc) {
+    if (video.getAttribute("src") !== videoSrc) {
+      video.src = videoSrc;
+      video.load();
+    }
+    video.currentTime = 0;
+    video.style.display = "block";
+    if (svg) svg.style.display = "none";
+    const p = video.play();
+    if (p !== undefined) p.catch(() => {});
+  } else if (svg) {
+    if (video) video.style.display = "none";
+    svg.style.display = "block";
+  }
+
   pop.classList.remove("hidden", "pop-out");
   pop.classList.add("pop-in");
   clearTimeout(pop._timer);
   pop._timer = setTimeout(() => {
     pop.classList.remove("pop-in");
     pop.classList.add("pop-out");
-    setTimeout(() => pop.classList.add("hidden"), 350);
+    setTimeout(() => {
+      pop.classList.add("hidden");
+      if (video) {
+        try { video.pause(); } catch (e) {}
+      }
+    }, 350);
   }, ms);
+}
+
+function triggerYipeeCheer(text, mood = "good", ms = 2200) {
+  const kind = mood === "good" ? "happy" : "oops";
+  triggerAvatarReaction(kind, text, ms);
 }
 
 </script>
@@ -2703,12 +2844,14 @@ function onBubbleTap(word, el, e, player = 1) {
       if (G.yipeeRig) G.yipeeRig.rejoice();
       say("#yipeeSay", pick(["Yipee! 🎉", "Yes! ⭐", "Amen! 🙌", "Keep going! 💪"]), "good");
 
-      // Combos & Yipee Mascot pop-ups
+      // Avatar Happy celebration video reaction on bottom right
       G.combo = (G.combo || 0) + 1;
       if (G.combo === 3) {
-        triggerYipeeCheer(pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
+        triggerAvatarReaction("happy", pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
       } else if (racer.placed.length === Math.ceil(racer.target.length / 2)) {
-        triggerYipeeCheer("Halfway there! Keep going! 🌈");
+        triggerAvatarReaction("happy", "Halfway there! Keep going! 🌈");
+      } else {
+        triggerAvatarReaction("happy", pick(["Happy! 🎉", "Great job! ⭐", "Amen! 🙌", "You got it! ✨", "Keep going! 💪"]));
       }
     }
     updateBars();
@@ -2733,6 +2876,8 @@ function onBubbleTap(word, el, e, player = 1) {
     } else {
       if (G.yipeeRig) G.yipeeRig.sad();
       say("#yipeeSay", pick(["Try another word! 💛", "Not that one!", "Almost! 🤔"]), "bad");
+      // Avatar Oops try again video reaction on bottom right
+      triggerAvatarReaction("oops", pick(["Oops, try again! 🤔", "Not that one! 💛", "Almost! ✨", "Keep trying! 💪"]));
     }
   }
 }

@@ -391,12 +391,14 @@ function onBubbleTap(word, el, e, player = 1) {
       if (G.yipeeRig) G.yipeeRig.rejoice();
       say("#yipeeSay", pick(["Yipee! 🎉", "Yes! ⭐", "Amen! 🙌", "Keep going! 💪"]), "good");
 
-      // Combos & Yipee Mascot pop-ups
+      // Avatar Happy celebration video reaction on bottom right
       G.combo = (G.combo || 0) + 1;
       if (G.combo === 3) {
-        triggerYipeeCheer(pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
+        triggerAvatarReaction("happy", pick(["Super fast! ⚡", "3 in a row! 🔥", "Baa-rilliant! ⭐"]));
       } else if (racer.placed.length === Math.ceil(racer.target.length / 2)) {
-        triggerYipeeCheer("Halfway there! Keep going! 🌈");
+        triggerAvatarReaction("happy", "Halfway there! Keep going! 🌈");
+      } else {
+        triggerAvatarReaction("happy", pick(["Happy! 🎉", "Great job! ⭐", "Amen! 🙌", "You got it! ✨", "Keep going! 💪"]));
       }
     }
     updateBars();
@@ -421,6 +423,8 @@ function onBubbleTap(word, el, e, player = 1) {
     } else {
       if (G.yipeeRig) G.yipeeRig.sad();
       say("#yipeeSay", pick(["Try another word! 💛", "Not that one!", "Almost! 🤔"]), "bad");
+      // Avatar Oops try again video reaction on bottom right
+      triggerAvatarReaction("oops", pick(["Oops, try again! 🤔", "Not that one! 💛", "Almost! ✨", "Keep trying! 💪"]));
     }
   }
 }

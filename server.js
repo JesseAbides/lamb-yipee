@@ -17,6 +17,8 @@ const MIME_TYPES = {
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
   ".wav": "audio/wav",
   ".mp3": "audio/mpeg",
   ".woff2": "font/woff2",
@@ -42,7 +44,11 @@ const server = http.createServer((req, res) => {
     }
 
     if (stats.isDirectory()) {
-      filePath = path.join(filePath, "lamb-yipee.html");
+      const tryLamb = path.join(filePath, "lamb-yipee.html");
+      const tryIndex = path.join(filePath, "index.html");
+      if (fs.existsSync(tryLamb)) filePath = tryLamb;
+      else if (fs.existsSync(tryIndex)) filePath = tryIndex;
+      else filePath = tryLamb;
     }
 
     fs.readFile(filePath, (readErr, data) => {
