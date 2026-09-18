@@ -90,7 +90,7 @@
 
   /* ================= G0 — boot, menu, navigation ================= */
   stage("G0 boot & navigation", async t => {
-    t(document.title.indexOf("Lamb Yipee") === 0, "title is Lamb Yipee");
+    t(document.title.indexOf("YipeeVerse") === 0, "title is YipeeVerse");
     t(visible("#menu"), "menu visible on load");
     t(!visible("#pauseOverlay") && !visible("#countOverlay"), "no overlay stuck open on load");
     t($$("#menu .mode-card").length === 3, "three mode cards (single, duo CPU, duo local)");

@@ -331,7 +331,7 @@ function startGame(mode, verse, opts = {}) {
     if (myRace !== G.raceId) return;
     G.startAt = performance.now();
     G.running = true;
-    triggerYipeeCheer(pick(["YIPEE! You've got this! ✨", "Run like the wind! 🌸", "Baa-lieve in yourself! 🌟"]));
+    triggerYipeeCheer(`Yipee: "Here is your Bible verse from ${verse.ref}! Let's build it!" 📖`, "good", 3200);
     if (G.rivalKind === "cpu" || G.rivalKind === "ghost") startRivalClock();
     tick();
   });
@@ -736,8 +736,8 @@ function showResults(winner, youMs, rivalMs, stars, newBest) {
 
   $("#resTitle").textContent =
     G.mode === "duo" ? (youWon ? `${G.you.name} wins! 🎉` : `${G.rival.name} wins! 🐏`) :
-    youWon ? (isOvertime ? "Verse complete! ⏱️" : "Verse complete! 🎉") : "So close! 🐑";
-  $("#resVerse").textContent = "📖 " + G.verse.ref + " · NIV — " + G.verse.text;
+    youWon ? (isOvertime ? "Yipee: \"Well done! You finished God's Word! ⏱️\"" : "Yipee: \"Amen! You hid God's Word in your heart! 🐑🌟\"") : "Yipee: \"So close! Let's try God's Word again! 🐑\"";
+  $("#resVerse").textContent = `📖 Yipee's Bible Verse: ${G.verse.ref} · NIV — "${G.verse.text}"`;
   $("#resTime").textContent = youMs != null ? (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs)) : "DNF";
   $("#resGrade").textContent = youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!";
   $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isOvertime ? " (Over limit)" : "");
@@ -872,11 +872,8 @@ function openLevelSelect(mode, rivalKind, rivalName) {
   G.pendingMode = mode;
   G.pendingRivalKind = rivalKind;
   G.pendingRivalName = rivalName;
-  $("#vsTitle").textContent = mode === "single" ? "Pick a Difficulty — Single 🐑" : "Pick a Difficulty — Duo ⚔️";
-  $("#vsSub").textContent = mode === "single"
-    ? "You'll get a random verse of that length. See the reference, recall the words!"
-    : (rivalKind === "cpu" ? "Random verse — first to finish it word-for-word wins!"
-                           : "Random verse on one screen — P1 taps bubbles, P2 uses keys 1–9!");
+  $("#vsTitle").textContent = mode === "single" ? "Pick a Difficulty — Single · YipeeVerse 🐑" : "Pick a Difficulty — Duo · YipeeVerse ⚔️";
+  $("#vsSub").textContent = "Yipee the Lamb is ready with your Bible verse! Pick a difficulty and beat the clock:";
   const grid = $("#levelGrid");
   grid.innerHTML = "";
   const cards = [
