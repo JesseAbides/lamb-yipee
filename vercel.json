@@ -1,16 +1,19 @@
 {
   "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/index.html",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/qa",
       "destination": "/qa/index.html"
     },
     {
-      "source": "/qa/(.*)",
-      "destination": "/qa/index.html"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/lamb-yipee",
       "destination": "/index.html"
     }
   ]
