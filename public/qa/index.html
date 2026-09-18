@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <title>YipeeVerse — Scripture Word for Word (NIV)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-<style>﻿/* ============================================================
+<style>/* ============================================================
    LAMB YIPEE — Scripture Word for Word
    Pastel sky / meadow theme
    ============================================================ */
@@ -156,13 +156,15 @@ body {
   object-fit: cover;
   border-radius: 50%;
   background: #ffffff;
-  z-index: 2;
+  z-index: 5;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease-in-out;
+  transition: opacity 0.16s ease-in-out;
+  display: none;
 }
 .player-reaction-vid.active {
-  opacity: 1;
+  opacity: 1 !important;
+  display: block !important;
 }
 
 .btn {
@@ -323,9 +325,28 @@ body {
   border: 3px solid #e8b64c; background: #fff6dc;
   border-radius: 999px; padding: 5px 13px; cursor: pointer;
   box-shadow: 0 3px 0 rgba(0,0,0,.10);
+  transition: transform .12s, box-shadow .12s, background .12s;
 }
 .icon-btn:active { transform: translateY(2px); }
 .icon-btn:disabled { opacity: .45; cursor: default; }
+
+/* Pass button during overtime or when player wants to proceed to score page */
+.pass-btn {
+  background: linear-gradient(180deg, #fff2db, #ffd98a);
+  border-color: #f59e0b;
+  color: #854d0e;
+  font-weight: 800;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+  animation: passBtnPulse 1.6s ease-in-out infinite alternate;
+}
+.pass-btn:hover {
+  background: linear-gradient(180deg, #fff7ea, #ffe4a3);
+  transform: translateY(-2px) scale(1.04);
+}
+@keyframes passBtnPulse {
+  0% { transform: scale(1); box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+  100% { transform: scale(1.05); box-shadow: 0 0 18px rgba(245, 158, 11, 0.7); }
+}
 
 /* stage layout: scripture board placed right under HUD (image 3) with height lessened by half; hill area below */
 .stage {
@@ -359,16 +380,20 @@ body {
 
 /* sky + hill scenery */
 .hill-area .sun {
-  position: absolute; top: 62px; left: 24px;
-  width: 64px; height: 64px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff7c4, #ffd94d);
-  box-shadow: 0 0 40px 14px rgba(255, 217, 77, .45);
+  position: absolute; top: 18px; left: 24px;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fffde6, #ffd94d);
+  box-shadow: 0 0 36px 12px rgba(255, 217, 77, .5);
+  z-index: 1;
 }
 .cloud {
   position: absolute; background: #fff; border-radius: 999px;
-  opacity: .9; filter: blur(.4px);
+  opacity: .92; filter: blur(.4px);
   animation: drift linear infinite;
+  z-index: 2;
 }
+.cloud-1 { top: 12px; width: 110px; height: 32px; animation-duration: 28s; }
+.cloud-2 { top: 46px; width: 85px; height: 26px; animation-duration: 38s; animation-delay: -14s; opacity: .75; }
 .cloud::before, .cloud::after {
   content: ""; position: absolute; background: #fff; border-radius: 50%;
 }
@@ -376,11 +401,110 @@ body {
 .cloud::after { width: 45%; height: 130%; right: 10%; top: -50%; }
 @keyframes drift { from { transform: translateX(-30vw); } to { transform: translateX(115vw); } }
 
+/* Layered rolling hills for rich green visible backdrop */
+.hill-bg {
+  position: absolute;
+  bottom: -4%;
+  left: -20%;
+  right: -20%;
+  height: 64%;
+  background: linear-gradient(180deg, #9ae659 0%, #60bb2d 100%);
+  border-radius: 55% 55% 0 0 / 100% 100% 0 0;
+  z-index: 2;
+  box-shadow: inset 0 10px 0 rgba(255, 255, 255, 0.22);
+}
 .hill {
-  position: absolute; bottom: -6%; left: -12%; right: -12%; height: 58%;
-  background: linear-gradient(180deg, var(--hill), var(--grass));
+  position: absolute;
+  bottom: -6%;
+  left: -10%;
+  right: -10%;
+  height: 54%;
+  background: linear-gradient(180deg, #6ec930 0%, #3e8e19 100%);
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  box-shadow: inset 0 14px 0 rgba(255,255,255,.25);
+  box-shadow: inset 0 16px 0 rgba(255,255,255,.28);
+  z-index: 3;
+}
+.hill-fg {
+  position: absolute;
+  bottom: -10%;
+  left: -5%;
+  right: -5%;
+  height: 38%;
+  background: linear-gradient(180deg, #5bb622 0%, #2f7512 100%);
+  border-radius: 60% 60% 0 0 / 100% 100% 0 0;
+  box-shadow: inset 0 12px 0 rgba(255,255,255,.20);
+  z-index: 4;
+}
+
+/* Hill scenery: Trees, Wildflowers, Peaceful Animals */
+.hill-scenery {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.scenery-item {
+  position: absolute;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+}
+.tree {
+  font-size: clamp(22px, 3.2vw, 34px);
+  transform-origin: bottom center;
+}
+.tree-left-1 { bottom: 42%; left: 4%; }
+.tree-left-2 { bottom: 38%; left: 13%; font-size: clamp(20px, 2.8vw, 30px); }
+.tree-mid-left { bottom: 48%; left: 32%; font-size: clamp(18px, 2.5vw, 26px); opacity: 0.9; }
+.tree-mid-right { bottom: 47%; right: 30%; font-size: clamp(19px, 2.6vw, 28px); opacity: 0.9; }
+.tree-right-1 { bottom: 42%; right: 12%; font-size: clamp(20px, 2.8vw, 30px); }
+.tree-right-2 { bottom: 38%; right: 4%; }
+
+/* Flowers */
+.flower {
+  font-size: clamp(15px, 2vw, 22px);
+  animation: flowerSway 3s ease-in-out infinite alternate;
+}
+.fl-1 { bottom: 26%; left: 8%; animation-delay: 0s; }
+.fl-2 { bottom: 18%; left: 18%; animation-delay: 0.4s; }
+.fl-3 { bottom: 29%; left: 24%; animation-delay: 0.8s; }
+.fl-4 { bottom: 14%; left: 34%; animation-delay: 1.2s; }
+.fl-5 { bottom: 22%; left: 46%; animation-delay: 0.3s; }
+.fl-6 { bottom: 15%; right: 42%; animation-delay: 0.7s; }
+.fl-7 { bottom: 28%; right: 33%; animation-delay: 1.1s; }
+.fl-8 { bottom: 18%; right: 23%; animation-delay: 0.5s; }
+.fl-9 { bottom: 27%; right: 14%; animation-delay: 0.9s; }
+.fl-10 { bottom: 12%; right: 8%; animation-delay: 1.3s; }
+
+@keyframes flowerSway {
+  0% { transform: rotate(-5deg) translateY(0); }
+  100% { transform: rotate(5deg) translateY(-2px); }
+}
+
+/* Meadow Animals */
+.animal {
+  font-size: clamp(18px, 2.4vw, 26px);
+}
+.animal-bunny { bottom: 22%; left: 28%; }
+.animal-dove { bottom: 52%; left: 20%; animation: doveFloat 4s ease-in-out infinite alternate; font-size: clamp(16px, 2vw, 24px); }
+.animal-deer { bottom: 36%; right: 20%; font-size: clamp(20px, 2.8vw, 30px); }
+.animal-sheep { bottom: 20%; right: 28%; }
+.animal-butterfly-1 { bottom: 38%; left: 40%; animation: butterflyFlutter 3.5s ease-in-out infinite; }
+.animal-butterfly-2 { bottom: 34%; right: 38%; animation: butterflyFlutter 4s ease-in-out infinite reverse; }
+.animal-bee { bottom: 24%; left: 52%; animation: beeHover 2.5s ease-in-out infinite; }
+
+@keyframes butterflyFlutter {
+  0% { transform: translate(0, 0) rotate(0deg) scale(0.9); }
+  33% { transform: translate(12px, -14px) rotate(12deg) scale(1.1); }
+  66% { transform: translate(-8px, -24px) rotate(-10deg) scale(0.95); }
+  100% { transform: translate(0, 0) rotate(0deg) scale(0.9); }
+}
+@keyframes beeHover {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(6px, -8px); }
+}
+@keyframes doveFloat {
+  0% { transform: translateY(0) rotate(-2deg); }
+  100% { transform: translateY(-8px) rotate(2deg); }
 }
 
 /* word bubbles arranged on the hill arc */
@@ -1629,6 +1753,7 @@ body {
     <span class="chip timer" id="timer">0.0s</span>
     <span class="chip" id="rivalChip" style="display:none"></span>
     <span class="spacer"></span>
+    <button class="icon-btn pass-btn hidden" id="passBtn" title="Pass and proceed to score page">⏭️ Pass to Score</button>
     <button class="icon-btn" id="peekBtn" title="Highlight the next word on the hill (3 uses)">💡 Peek (3)</button>
     <button class="icon-btn" id="pauseBtn">⏸</button>
   </div>
@@ -1661,13 +1786,51 @@ body {
       </div>
     </div>
 
-    <!-- Hill area below the board with open sky, clouds & bubbles -->
+    <!-- Hill area below the board with open sunny sky, trees, animals, flowers & bubbles -->
     <div class="hill-area" id="hillArea">
       <div class="sun"></div>
-      <div class="hill"></div>
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
 
-      <!-- Player avatar stands on the left and reacts to taps -->
-            <div class="lamb-side left">
+      <!-- Layered rolling green hills -->
+      <div class="hill-bg"></div>
+      <div class="hill"></div>
+      <div class="hill-fg"></div>
+
+      <!-- Hill scenery: Trees, Wildflowers, Peaceful Animals -->
+      <div class="hill-scenery" aria-hidden="true">
+        <!-- Trees on hills -->
+        <div class="scenery-item tree tree-pine tree-left-1">🌲</div>
+        <div class="scenery-item tree tree-oak tree-left-2">🌳</div>
+        <div class="scenery-item tree tree-pine tree-mid-left">🌲</div>
+        <div class="scenery-item tree tree-oak tree-mid-right">🌳</div>
+        <div class="scenery-item tree tree-pine tree-right-1">🌲</div>
+        <div class="scenery-item tree tree-oak tree-right-2">🌳</div>
+
+        <!-- Wildflowers across the slopes -->
+        <div class="scenery-item flower fl-1">🌸</div>
+        <div class="scenery-item flower fl-2">🌼</div>
+        <div class="scenery-item flower fl-3">🌷</div>
+        <div class="scenery-item flower fl-4">🌻</div>
+        <div class="scenery-item flower fl-5">🌺</div>
+        <div class="scenery-item flower fl-6">🌼</div>
+        <div class="scenery-item flower fl-7">🌸</div>
+        <div class="scenery-item flower fl-8">🌷</div>
+        <div class="scenery-item flower fl-9">🌻</div>
+        <div class="scenery-item flower fl-10">🌼</div>
+
+        <!-- Peaceful meadow animals -->
+        <div class="scenery-item animal animal-bunny">🐇</div>
+        <div class="scenery-item animal animal-butterfly-1">🦋</div>
+        <div class="scenery-item animal animal-butterfly-2">🦋</div>
+        <div class="scenery-item animal animal-dove">🕊️</div>
+        <div class="scenery-item animal animal-deer">🦌</div>
+        <div class="scenery-item animal animal-sheep">🐑</div>
+        <div class="scenery-item animal animal-bee">🐝</div>
+      </div>
+
+      <!-- Player avatar stands on the left and reacts to taps with live video -->
+      <div class="lamb-side left">
         <div class="say" id="yipeeSay"></div>
         <div class="player-avatar-box" id="playerAvatarBox">
           <img class="player-idle-img" id="playerIdleImg" src="" alt="Player Avatar" />
@@ -2628,7 +2791,7 @@ const Online = (() => {
   };
 })();
 </script>
-<script>﻿/* ============================================================
+<script>/* ============================================================
    LAMB YIPEE — animated character v3
    Sculpted after the 3D-render reference: big head with curly
    pom-pom crown, wide splayed ears with pink inner, huge glossy
@@ -3338,9 +3501,30 @@ const AVATAR_VIDEOS = {
   }
 };
 
+function resolveAvatarId(id) {
+  if (!id) return "capybara";
+  id = String(id).toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const aliasMap = {
+    koa: "capybara", capy: "capybara", capybara: "capybara",
+    kage: "ninja_fox", fox: "ninja_fox", ninja_fox: "ninja_fox", ninja: "ninja_fox",
+    shelldon: "scholar_turtle", shelly: "scholar_turtle", turtle: "scholar_turtle", scholar_turtle: "scholar_turtle", scholar: "scholar_turtle",
+    pixel: "gamer_panda", panda: "gamer_panda", gamer_panda: "gamer_panda", gamer: "gamer_panda",
+    mocha: "barista_otter", otter: "barista_otter", barista_otter: "barista_otter", barista: "barista_otter",
+    shadow: "detective_cat", cat: "detective_cat", detective_cat: "detective_cat", detective: "detective_cat",
+    barnaby: "chef_bunny", bunny: "chef_bunny", rabbit: "chef_bunny", chef_bunny: "chef_bunny", chef: "chef_bunny",
+    beats: "lofi_hamster", hamster: "lofi_hamster", lofi_hamster: "lofi_hamster", lofi: "lofi_hamster",
+    ziggy: "rockstar_parrot", parrot: "rockstar_parrot", rockstar_parrot: "rockstar_parrot", rockstar: "rockstar_parrot",
+    astro: "astro_corgi", corgi: "astro_corgi", astro_corgi: "astro_corgi", dog: "astro_corgi",
+    scout: "scout_pup", pup: "scout_pup", scout_pup: "scout_pup", retriever: "scout_pup", golden: "scout_pup",
+    flora: "capybara", lamb: "capybara", royal: "scout_pup", pip: "scout_pup"
+  };
+  return aliasMap[id] || (AVATAR_VIDEOS[id] ? id : "capybara");
+}
+
 function getAvatarVideo(avatarId, kind = "happy") {
-  const v = AVATAR_VIDEOS[avatarId] || AVATAR_VIDEOS.astro_corgi;
-  return (v && v[kind]) || "";
+  const normId = resolveAvatarId(avatarId);
+  const v = AVATAR_VIDEOS[normId] || AVATAR_VIDEOS.capybara;
+  return (v && v[kind]) || (AVATAR_VIDEOS.capybara && AVATAR_VIDEOS.capybara[kind]) || "";
 }
 
 /* ---------------------------------------------------------------
@@ -3401,7 +3585,7 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
 
 /* ---------------------------------------------------------------
    triggerPlayerReaction — plays the PLAYER'S CHARACTER reaction
-   video in the bottom-left avatar overlay (#playerReactionOverlay).
+   video in the bottom-left circular avatar box (#playerAvatarBox).
    kind = "happy" | "oops"
    --------------------------------------------------------------- */
 function triggerPlayerReaction(kind = "happy", ms = 2200) {
@@ -3409,13 +3593,15 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
   const vid = document.getElementById("playerReactionVid");
   if (!box || !vid) return;
 
-  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || (typeof Store !== "undefined" && Store.profile().avatarId) || "capybara";
+  const rawId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || (typeof Store !== "undefined" && Store.profile().avatarId) || "capybara";
+  const avatarId = resolveAvatarId(rawId);
   const videoSrc = getAvatarVideo(avatarId, kind);
 
   box.classList.remove("happy", "oops");
   box.classList.add(kind === "happy" ? "happy" : "oops");
 
   if (videoSrc) {
+    vid.style.display = "block";
     vid.muted = true;
     vid.playsInline = true;
     vid.loop = true;
@@ -3435,7 +3621,12 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
     box._reactionTimer = setTimeout(() => {
       box.classList.remove("happy", "oops");
       vid.classList.remove("active");
-      try { vid.pause(); } catch (e) {}
+      setTimeout(() => {
+        if (!vid.classList.contains("active")) {
+          vid.style.display = "none";
+          try { vid.pause(); } catch (e) {}
+        }
+      }, 180);
     }, ms);
   }
 }
@@ -3446,7 +3637,7 @@ function triggerYipeeCheer(text, mood = "good", ms = 2200) {
 }
 
 </script>
-<script>﻿/* ============================================================
+<script>/* ============================================================
    LAMB YIPEE — main controller
    Screens: menu, verse select, game (single & duo), results
    ============================================================ */
@@ -3781,7 +3972,12 @@ function startGame(mode, verse, opts = {}) {
   }
   const reactionVid = $("#playerReactionVid");
   if (reactionVid) {
+    reactionVid.classList.remove("active");
     reactionVid.style.display = "none";
+  }
+  const passBtn = $("#passBtn");
+  if (passBtn) {
+    passBtn.classList.add("hidden");
   }
   const sideTag = $("#playerSideTag");
   if (sideTag) sideTag.textContent = `${petInfo.icon} ${petInfo.name} (${G.you.name})`;
@@ -4125,10 +4321,15 @@ function tick() {
   if (!G.paused && !G.you.done) {
     const elapsed = performance.now() - G.startAt;
     const timerEl = $("#timer");
+    const passBtn = $("#passBtn");
+
     if (timerEl) {
       if (elapsed <= G.timeLimitMs) {
         const remainingMs = G.timeLimitMs - elapsed;
         timerEl.textContent = `⏱️ ${(remainingMs / 1000).toFixed(1)}s`;
+        if (passBtn && !passBtn.classList.contains("hidden")) {
+          passBtn.classList.add("hidden");
+        }
         if (remainingMs <= 5000) {
           timerEl.classList.add("urgent");
           if (!G.urgentShoutDone) {
@@ -4140,13 +4341,16 @@ function tick() {
           timerEl.classList.remove("urgent");
         }
       } else {
-        // Overtime: game continues! Time recorded, but no stars
+        // Overtime: game continues! Time recorded, 0 stars, and Pass button becomes available
         const overSec = ((elapsed - G.timeLimitMs) / 1000).toFixed(1);
         timerEl.classList.add("urgent");
         timerEl.textContent = `⏱️ +${overSec}s`;
+        if (passBtn && passBtn.classList.contains("hidden")) {
+          passBtn.classList.remove("hidden");
+        }
         if (!G.overtimeShoutDone) {
           G.overtimeShoutDone = true;
-          triggerYipeeCheer("Time limit reached! Keep going to finish! 💪", "good", 2400);
+          triggerYipeeCheer("Time limit reached! Keep going or tap Pass! 💪", "good", 2400);
         }
       }
     }
@@ -4174,8 +4378,14 @@ function updateBars() {
 }
 
 /* ============================================================
-   PAUSE / PEEK / QUIT
+   PAUSE / PEEK / PASS / QUIT
    ============================================================ */
+function passToScorePage() {
+  if (!G.running || G.you.done) return;
+  const elapsed = performance.now() - G.startAt;
+  finishRace("pass", elapsed);
+}
+
 function pauseGame() {
   if (!G.running || G.paused || G.you.done) return;
   G.paused = true;
@@ -4239,6 +4449,8 @@ function quitGame() {
   clearInterval(G.countInt);
   if (G.countTimers) G.countTimers.forEach(clearTimeout);
   cancelAnimationFrame(G.raf);
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.classList.add("hidden");
   $("#pauseOverlay").classList.add("hidden");
   $("#countOverlay").classList.add("hidden");
   showScreen("#menu");
@@ -4247,48 +4459,61 @@ function quitGame() {
 /* ============================================================
    FINISH + RESULTS
    ============================================================ */
-function finishRace(winner) {
+function finishRace(winner, customTimeMs) {
   if (G.finished) return;              // already finished this race
-  if (!G.running && winner !== "you") return;
+  if (!G.running && winner !== "you" && winner !== "pass") return;
   G.finished = true;
   G.running = false;
   clearInterval(G.cpuTimer);
   clearTimeout(G.cpuTimer);
   cancelAnimationFrame(G.raf);
 
-  const youMs = G.you.done ? G.you.doneAt - G.startAt : null;
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.classList.add("hidden");
+
+  const youMs = customTimeMs != null ? customTimeMs : (G.you.done ? G.you.doneAt - G.startAt : (performance.now() - G.startAt));
   const rivalMs = G.rival && G.rival.done ? G.rival.doneAt - G.startAt : null;
   const youWon = winner === "you";
+  const isPass = winner === "pass";
 
-  // stats: if it pass the timer, they will not get star (stars = 0), but their time/minutes will be recorded!
-  const stars = youMs != null ? starsOf(youMs, G.timeLimit) : 0;
+  // stats: within limit earns 1-3 stars. Overtime and pass earn 0 stars, but time is recorded!
+  const stars = (!isPass && youWon && youMs <= G.timeLimitMs) ? starsOf(youMs, G.timeLimit) : 0;
   Store.addTotals({ stars, win: youWon ? 1 : 0, race: 1 });
   let newBest = false;
-  if (youMs != null) newBest = Store.setBest(G.verse.ref, youMs);
+  if (youWon && youMs != null && !isPass && youMs <= G.timeLimitMs) {
+    newBest = Store.setBest(G.verse.ref, youMs);
+  }
 
-  setTimeout(() => showResults(winner, youMs, rivalMs, stars, newBest), 700);
+  setTimeout(() => showResults(winner, youMs, rivalMs, stars, newBest), 600);
   if (youWon) {
     SFX.finish();
     confettiBurst();
     if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("happy", 3200);
     if (G.yipeeRig) G.yipeeRig.rejoice(1300);
+  } else if (isPass) {
+    SFX.wrong();
+    if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("oops", 2000);
+    if (G.yipeeRig) G.yipeeRig.sad(1100);
   } else {
     SFX.lose();
+    if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("oops", 2000);
     if (G.yipeeRig) G.yipeeRig.sad(1100);
   }
 }
 
 function showResults(winner, youMs, rivalMs, stars, newBest) {
   const youWon = winner === "you";
+  const isPass = winner === "pass";
   const isOvertime = youMs != null && youMs > G.timeLimitMs;
 
   $("#resTitle").textContent =
+    isPass ? "Yipee: \"Keep practicing God's Word! 🐑📖\"" :
     G.mode === "duo" ? (youWon ? `${G.you.name} wins! 🎉` : `${G.rival.name} wins! 🐏`) :
     youWon ? (isOvertime ? "Yipee: \"Well done! You finished God's Word! ⏱️\"" : "Yipee: \"Amen! You hid God's Word in your heart! 🐑🌟\"") : "Yipee: \"So close! Let's try God's Word again! 🐑\"";
   $("#resVerse").textContent = `📖 Yipee's Bible Verse: ${G.verse.ref} · NIV — "${G.verse.text}"`;
-  $("#resTime").textContent = youMs != null ? (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs)) : "DNF";
-  $("#resGrade").textContent = youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!";
-  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isOvertime ? " (Over limit)" : "");
+  $("#resTime").textContent = youMs != null ? (isPass ? `${fmt(youMs)} (Passed)` : (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs))) : "DNF";
+  $("#resGrade").textContent = isPass ? "Keep practicing!" : (youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!");
+  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isPass ? " (Passed)" : (isOvertime ? " (Over limit)" : ""));
   $("#resBest").textContent = newBest ? "🏆 NEW PERSONAL BEST!" :
     ("Best: " + fmt(Store.bestFor(G.verse.ref)));
   $("#resMistakes").textContent = `Mistakes: ${G.you.mistakes} · Taps: ${G.you.taps} · Limit: ${G.timeLimit}s`;
@@ -4660,6 +4885,8 @@ function wire() {
   $("#vsBack").addEventListener("click", () => showScreen("#menu"));
 
   // HUD
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.addEventListener("click", passToScorePage);
   $("#pauseBtn").addEventListener("click", pauseGame);
   $("#resumeBtn").addEventListener("click", resumeGame);
   $("#quitBtn").addEventListener("click", quitGame);

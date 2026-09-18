@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    LAMB YIPEE — main controller
    Screens: menu, verse select, game (single & duo), results
    ============================================================ */
@@ -333,7 +333,12 @@ function startGame(mode, verse, opts = {}) {
   }
   const reactionVid = $("#playerReactionVid");
   if (reactionVid) {
+    reactionVid.classList.remove("active");
     reactionVid.style.display = "none";
+  }
+  const passBtn = $("#passBtn");
+  if (passBtn) {
+    passBtn.classList.add("hidden");
   }
   const sideTag = $("#playerSideTag");
   if (sideTag) sideTag.textContent = `${petInfo.icon} ${petInfo.name} (${G.you.name})`;
@@ -677,10 +682,15 @@ function tick() {
   if (!G.paused && !G.you.done) {
     const elapsed = performance.now() - G.startAt;
     const timerEl = $("#timer");
+    const passBtn = $("#passBtn");
+
     if (timerEl) {
       if (elapsed <= G.timeLimitMs) {
         const remainingMs = G.timeLimitMs - elapsed;
         timerEl.textContent = `⏱️ ${(remainingMs / 1000).toFixed(1)}s`;
+        if (passBtn && !passBtn.classList.contains("hidden")) {
+          passBtn.classList.add("hidden");
+        }
         if (remainingMs <= 5000) {
           timerEl.classList.add("urgent");
           if (!G.urgentShoutDone) {
@@ -692,13 +702,16 @@ function tick() {
           timerEl.classList.remove("urgent");
         }
       } else {
-        // Overtime: game continues! Time recorded, but no stars
+        // Overtime: game continues! Time recorded, 0 stars, and Pass button becomes available
         const overSec = ((elapsed - G.timeLimitMs) / 1000).toFixed(1);
         timerEl.classList.add("urgent");
         timerEl.textContent = `⏱️ +${overSec}s`;
+        if (passBtn && passBtn.classList.contains("hidden")) {
+          passBtn.classList.remove("hidden");
+        }
         if (!G.overtimeShoutDone) {
           G.overtimeShoutDone = true;
-          triggerYipeeCheer("Time limit reached! Keep going to finish! 💪", "good", 2400);
+          triggerYipeeCheer("Time limit reached! Keep going or tap Pass! 💪", "good", 2400);
         }
       }
     }
@@ -726,8 +739,14 @@ function updateBars() {
 }
 
 /* ============================================================
-   PAUSE / PEEK / QUIT
+   PAUSE / PEEK / PASS / QUIT
    ============================================================ */
+function passToScorePage() {
+  if (!G.running || G.you.done) return;
+  const elapsed = performance.now() - G.startAt;
+  finishRace("pass", elapsed);
+}
+
 function pauseGame() {
   if (!G.running || G.paused || G.you.done) return;
   G.paused = true;
@@ -791,6 +810,8 @@ function quitGame() {
   clearInterval(G.countInt);
   if (G.countTimers) G.countTimers.forEach(clearTimeout);
   cancelAnimationFrame(G.raf);
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.classList.add("hidden");
   $("#pauseOverlay").classList.add("hidden");
   $("#countOverlay").classList.add("hidden");
   showScreen("#menu");
@@ -799,48 +820,61 @@ function quitGame() {
 /* ============================================================
    FINISH + RESULTS
    ============================================================ */
-function finishRace(winner) {
+function finishRace(winner, customTimeMs) {
   if (G.finished) return;              // already finished this race
-  if (!G.running && winner !== "you") return;
+  if (!G.running && winner !== "you" && winner !== "pass") return;
   G.finished = true;
   G.running = false;
   clearInterval(G.cpuTimer);
   clearTimeout(G.cpuTimer);
   cancelAnimationFrame(G.raf);
 
-  const youMs = G.you.done ? G.you.doneAt - G.startAt : null;
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.classList.add("hidden");
+
+  const youMs = customTimeMs != null ? customTimeMs : (G.you.done ? G.you.doneAt - G.startAt : (performance.now() - G.startAt));
   const rivalMs = G.rival && G.rival.done ? G.rival.doneAt - G.startAt : null;
   const youWon = winner === "you";
+  const isPass = winner === "pass";
 
-  // stats: if it pass the timer, they will not get star (stars = 0), but their time/minutes will be recorded!
-  const stars = youMs != null ? starsOf(youMs, G.timeLimit) : 0;
+  // stats: within limit earns 1-3 stars. Overtime and pass earn 0 stars, but time is recorded!
+  const stars = (!isPass && youWon && youMs <= G.timeLimitMs) ? starsOf(youMs, G.timeLimit) : 0;
   Store.addTotals({ stars, win: youWon ? 1 : 0, race: 1 });
   let newBest = false;
-  if (youMs != null) newBest = Store.setBest(G.verse.ref, youMs);
+  if (youWon && youMs != null && !isPass && youMs <= G.timeLimitMs) {
+    newBest = Store.setBest(G.verse.ref, youMs);
+  }
 
-  setTimeout(() => showResults(winner, youMs, rivalMs, stars, newBest), 700);
+  setTimeout(() => showResults(winner, youMs, rivalMs, stars, newBest), 600);
   if (youWon) {
     SFX.finish();
     confettiBurst();
     if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("happy", 3200);
     if (G.yipeeRig) G.yipeeRig.rejoice(1300);
+  } else if (isPass) {
+    SFX.wrong();
+    if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("oops", 2000);
+    if (G.yipeeRig) G.yipeeRig.sad(1100);
   } else {
     SFX.lose();
+    if (typeof triggerPlayerReaction === "function") triggerPlayerReaction("oops", 2000);
     if (G.yipeeRig) G.yipeeRig.sad(1100);
   }
 }
 
 function showResults(winner, youMs, rivalMs, stars, newBest) {
   const youWon = winner === "you";
+  const isPass = winner === "pass";
   const isOvertime = youMs != null && youMs > G.timeLimitMs;
 
   $("#resTitle").textContent =
+    isPass ? "Yipee: \"Keep practicing God's Word! 🐑📖\"" :
     G.mode === "duo" ? (youWon ? `${G.you.name} wins! 🎉` : `${G.rival.name} wins! 🐏`) :
     youWon ? (isOvertime ? "Yipee: \"Well done! You finished God's Word! ⏱️\"" : "Yipee: \"Amen! You hid God's Word in your heart! 🐑🌟\"") : "Yipee: \"So close! Let's try God's Word again! 🐑\"";
   $("#resVerse").textContent = `📖 Yipee's Bible Verse: ${G.verse.ref} · NIV — "${G.verse.text}"`;
-  $("#resTime").textContent = youMs != null ? (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs)) : "DNF";
-  $("#resGrade").textContent = youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!";
-  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isOvertime ? " (Over limit)" : "");
+  $("#resTime").textContent = youMs != null ? (isPass ? `${fmt(youMs)} (Passed)` : (isOvertime ? `${fmt(youMs)} (Overtime)` : fmt(youMs))) : "DNF";
+  $("#resGrade").textContent = isPass ? "Keep practicing!" : (youMs != null ? gradeOf(youMs, G.timeLimit) : "Keep practicing!");
+  $("#resStars").textContent = "⭐".repeat(stars) + "☆".repeat(Math.max(0, 3 - stars)) + (isPass ? " (Passed)" : (isOvertime ? " (Over limit)" : ""));
   $("#resBest").textContent = newBest ? "🏆 NEW PERSONAL BEST!" :
     ("Best: " + fmt(Store.bestFor(G.verse.ref)));
   $("#resMistakes").textContent = `Mistakes: ${G.you.mistakes} · Taps: ${G.you.taps} · Limit: ${G.timeLimit}s`;
@@ -1212,6 +1246,8 @@ function wire() {
   $("#vsBack").addEventListener("click", () => showScreen("#menu"));
 
   // HUD
+  const passBtn = $("#passBtn");
+  if (passBtn) passBtn.addEventListener("click", passToScorePage);
   $("#pauseBtn").addEventListener("click", pauseGame);
   $("#resumeBtn").addEventListener("click", resumeGame);
   $("#quitBtn").addEventListener("click", quitGame);

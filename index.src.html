@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -90,6 +90,7 @@
     <span class="chip timer" id="timer">0.0s</span>
     <span class="chip" id="rivalChip" style="display:none"></span>
     <span class="spacer"></span>
+    <button class="icon-btn pass-btn hidden" id="passBtn" title="Pass and proceed to score page">⏭️ Pass to Score</button>
     <button class="icon-btn" id="peekBtn" title="Highlight the next word on the hill (3 uses)">💡 Peek (3)</button>
     <button class="icon-btn" id="pauseBtn">⏸</button>
   </div>
@@ -122,13 +123,51 @@
       </div>
     </div>
 
-    <!-- Hill area below the board with open sky, clouds & bubbles -->
+    <!-- Hill area below the board with open sunny sky, trees, animals, flowers & bubbles -->
     <div class="hill-area" id="hillArea">
       <div class="sun"></div>
-      <div class="hill"></div>
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
 
-      <!-- Player avatar stands on the left and reacts to taps -->
-            <div class="lamb-side left">
+      <!-- Layered rolling green hills -->
+      <div class="hill-bg"></div>
+      <div class="hill"></div>
+      <div class="hill-fg"></div>
+
+      <!-- Hill scenery: Trees, Wildflowers, Peaceful Animals -->
+      <div class="hill-scenery" aria-hidden="true">
+        <!-- Trees on hills -->
+        <div class="scenery-item tree tree-pine tree-left-1">🌲</div>
+        <div class="scenery-item tree tree-oak tree-left-2">🌳</div>
+        <div class="scenery-item tree tree-pine tree-mid-left">🌲</div>
+        <div class="scenery-item tree tree-oak tree-mid-right">🌳</div>
+        <div class="scenery-item tree tree-pine tree-right-1">🌲</div>
+        <div class="scenery-item tree tree-oak tree-right-2">🌳</div>
+
+        <!-- Wildflowers across the slopes -->
+        <div class="scenery-item flower fl-1">🌸</div>
+        <div class="scenery-item flower fl-2">🌼</div>
+        <div class="scenery-item flower fl-3">🌷</div>
+        <div class="scenery-item flower fl-4">🌻</div>
+        <div class="scenery-item flower fl-5">🌺</div>
+        <div class="scenery-item flower fl-6">🌼</div>
+        <div class="scenery-item flower fl-7">🌸</div>
+        <div class="scenery-item flower fl-8">🌷</div>
+        <div class="scenery-item flower fl-9">🌻</div>
+        <div class="scenery-item flower fl-10">🌼</div>
+
+        <!-- Peaceful meadow animals -->
+        <div class="scenery-item animal animal-bunny">🐇</div>
+        <div class="scenery-item animal animal-butterfly-1">🦋</div>
+        <div class="scenery-item animal animal-butterfly-2">🦋</div>
+        <div class="scenery-item animal animal-dove">🕊️</div>
+        <div class="scenery-item animal animal-deer">🦌</div>
+        <div class="scenery-item animal animal-sheep">🐑</div>
+        <div class="scenery-item animal animal-bee">🐝</div>
+      </div>
+
+      <!-- Player avatar stands on the left and reacts to taps with live video -->
+      <div class="lamb-side left">
         <div class="say" id="yipeeSay"></div>
         <div class="player-avatar-box" id="playerAvatarBox">
           <img class="player-idle-img" id="playerIdleImg" src="" alt="Player Avatar" />

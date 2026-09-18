@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    LAMB YIPEE — animated character v3
    Sculpted after the 3D-render reference: big head with curly
    pom-pom crown, wide splayed ears with pink inner, huge glossy
@@ -708,9 +708,30 @@ const AVATAR_VIDEOS = {
   }
 };
 
+function resolveAvatarId(id) {
+  if (!id) return "capybara";
+  id = String(id).toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const aliasMap = {
+    koa: "capybara", capy: "capybara", capybara: "capybara",
+    kage: "ninja_fox", fox: "ninja_fox", ninja_fox: "ninja_fox", ninja: "ninja_fox",
+    shelldon: "scholar_turtle", shelly: "scholar_turtle", turtle: "scholar_turtle", scholar_turtle: "scholar_turtle", scholar: "scholar_turtle",
+    pixel: "gamer_panda", panda: "gamer_panda", gamer_panda: "gamer_panda", gamer: "gamer_panda",
+    mocha: "barista_otter", otter: "barista_otter", barista_otter: "barista_otter", barista: "barista_otter",
+    shadow: "detective_cat", cat: "detective_cat", detective_cat: "detective_cat", detective: "detective_cat",
+    barnaby: "chef_bunny", bunny: "chef_bunny", rabbit: "chef_bunny", chef_bunny: "chef_bunny", chef: "chef_bunny",
+    beats: "lofi_hamster", hamster: "lofi_hamster", lofi_hamster: "lofi_hamster", lofi: "lofi_hamster",
+    ziggy: "rockstar_parrot", parrot: "rockstar_parrot", rockstar_parrot: "rockstar_parrot", rockstar: "rockstar_parrot",
+    astro: "astro_corgi", corgi: "astro_corgi", astro_corgi: "astro_corgi", dog: "astro_corgi",
+    scout: "scout_pup", pup: "scout_pup", scout_pup: "scout_pup", retriever: "scout_pup", golden: "scout_pup",
+    flora: "capybara", lamb: "capybara", royal: "scout_pup", pip: "scout_pup"
+  };
+  return aliasMap[id] || (AVATAR_VIDEOS[id] ? id : "capybara");
+}
+
 function getAvatarVideo(avatarId, kind = "happy") {
-  const v = AVATAR_VIDEOS[avatarId] || AVATAR_VIDEOS.astro_corgi;
-  return (v && v[kind]) || "";
+  const normId = resolveAvatarId(avatarId);
+  const v = AVATAR_VIDEOS[normId] || AVATAR_VIDEOS.capybara;
+  return (v && v[kind]) || (AVATAR_VIDEOS.capybara && AVATAR_VIDEOS.capybara[kind]) || "";
 }
 
 /* ---------------------------------------------------------------
@@ -771,7 +792,7 @@ function triggerAvatarReaction(kind = "happy", text = "", ms = 2400) {
 
 /* ---------------------------------------------------------------
    triggerPlayerReaction — plays the PLAYER'S CHARACTER reaction
-   video in the bottom-left avatar overlay (#playerReactionOverlay).
+   video in the bottom-left circular avatar box (#playerAvatarBox).
    kind = "happy" | "oops"
    --------------------------------------------------------------- */
 function triggerPlayerReaction(kind = "happy", ms = 2200) {
@@ -779,13 +800,15 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
   const vid = document.getElementById("playerReactionVid");
   if (!box || !vid) return;
 
-  const avatarId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || (typeof Store !== "undefined" && Store.profile().avatarId) || "capybara";
+  const rawId = (typeof G !== "undefined" && G && G.you && G.you.avatarId) || (typeof Store !== "undefined" && Store.profile().avatarId) || "capybara";
+  const avatarId = resolveAvatarId(rawId);
   const videoSrc = getAvatarVideo(avatarId, kind);
 
   box.classList.remove("happy", "oops");
   box.classList.add(kind === "happy" ? "happy" : "oops");
 
   if (videoSrc) {
+    vid.style.display = "block";
     vid.muted = true;
     vid.playsInline = true;
     vid.loop = true;
@@ -805,7 +828,12 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
     box._reactionTimer = setTimeout(() => {
       box.classList.remove("happy", "oops");
       vid.classList.remove("active");
-      try { vid.pause(); } catch (e) {}
+      setTimeout(() => {
+        if (!vid.classList.contains("active")) {
+          vid.style.display = "none";
+          try { vid.pause(); } catch (e) {}
+        }
+      }, 180);
     }, ms);
   }
 }
