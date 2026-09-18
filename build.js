@@ -17,4 +17,21 @@ html = html.replace("/*__MAIN__*/", () => main);
 
 fs.writeFileSync("lamb-yipee.html", html);
 fs.writeFileSync("index.html", html);
-console.log("Built lamb-yipee.html & index.html:", (html.length / 1024).toFixed(1) + " KB");
+
+// Ensure public/ directory exists for Vercel and static hosting
+if (!fs.existsSync("public")) {
+  fs.mkdirSync("public", { recursive: true });
+}
+fs.writeFileSync("public/index.html", html);
+fs.writeFileSync("public/lamb-yipee.html", html);
+
+// Copy assets if directory exists
+if (fs.existsSync("assets")) {
+  const pubAssets = "public/assets";
+  if (!fs.existsSync(pubAssets)) fs.mkdirSync(pubAssets, { recursive: true });
+  for (const f of fs.readdirSync("assets")) {
+    fs.copyFileSync("assets/" + f, pubAssets + "/" + f);
+  }
+}
+
+console.log("Built lamb-yipee.html & index.html (root + public):", (html.length / 1024).toFixed(1) + " KB");

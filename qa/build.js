@@ -12,4 +12,10 @@ if (!game.includes("</body>")) { console.error("no </body> in built game"); proc
 const out = game.replace("</body>", () => inject);
 
 fs.writeFileSync(path.join(__dirname, "index.html"), out);
-console.log("QA build -> qa/index.html (" + (out.length / 1024).toFixed(1) + " KB)");
+
+// Also copy to public/qa for Vercel preview
+const pubQa = path.join(root, "public", "qa");
+if (!fs.existsSync(pubQa)) fs.mkdirSync(pubQa, { recursive: true });
+fs.writeFileSync(path.join(pubQa, "index.html"), out);
+
+console.log("QA build -> qa/index.html & public/qa/index.html (" + (out.length / 1024).toFixed(1) + " KB)");
