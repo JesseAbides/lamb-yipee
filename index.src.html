@@ -240,15 +240,21 @@
         </div>
       </div>
 
-      <!-- Player avatar stands on the left and reacts to taps with live video -->
-      <div class="lamb-side left">
+      <!-- Player static avatar: top right under the dashboard -->
+      <div class="player-top-avatar" id="playerTopAvatar">
+        <div class="player-static-frame">
+          <img class="player-idle-img" id="playerIdleImg" src="assets/avatars/capybara.jpg" alt="" />
+        </div>
+        <div class="player-tag" id="playerSideTag">🌸 You</div>
+      </div>
+
+      <!-- Player live reaction video: on bottom left for correct & incorrect clicks -->
+      <div class="lamb-side left" id="playerReactionArea">
         <div class="say" id="yipeeSay"></div>
         <div class="player-avatar-box" id="playerAvatarBox">
-          <img class="player-idle-img" id="playerIdleImg" src="" alt="Player Avatar" />
           <video class="player-reaction-vid" id="playerReactionVid" playsinline muted loop></video>
         </div>
         <div id="yipee" class="lamb-anchor" style="display:none"></div>
-        <div class="player-tag" id="playerSideTag">🌸 You</div>
       </div>
 
       <!-- Rival lamb stands on the right (duo modes) -->

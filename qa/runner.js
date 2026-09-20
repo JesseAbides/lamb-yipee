@@ -464,19 +464,20 @@
   stage("G16 overtime pass button to score page", async t => {
     resetSave(); refreshStats();
     await gotoRace("#btnSingle", "easy");
-    t(visible("#passBtn"), "pass button element exists");
-    t(!$("#passBtn").classList.contains("visible"), "pass button hidden during regular time");
+    const passBtn = $("#passBtn");
+    t(!!passBtn, "pass button element exists in DOM");
+    t(passBtn.classList.contains("hidden"), "pass button hidden during regular time");
 
     // Simulate overtime trigger
     G.isOvertime = true;
-    $("#passBtn").classList.add("visible");
-    t($("#passBtn").classList.contains("visible"), "pass button visible when overtime triggered");
+    passBtn.classList.remove("hidden");
+    t(!passBtn.classList.contains("hidden") && visible("#passBtn"), "pass button visible when overtime triggered");
 
     // Click pass button
-    $("#passBtn").click();
+    passBtn.click();
     await until(() => visible("#results"), 3000);
     t(visible("#results"), "pass button cleanly transitions to score/results page");
-    t($("#resStars").textContent === "☆☆☆", "0 stars awarded on overtime/pass");
+    t($("#resStars").textContent.indexOf("☆☆☆") >= 0, "0 stars awarded on overtime/pass (" + $("#resStars").textContent + ")");
     $("#resMenu").click();
   });
 

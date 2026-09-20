@@ -27,9 +27,30 @@ const AVATAR_IMAGES = {
   scout_pup: "/*__IMG_SCOUT_PUP__*/"
 };
 
+function resolveAvatarId(id) {
+  if (!id) return "capybara";
+  id = String(id).toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const aliasMap = {
+    koa: "capybara", capy: "capybara", capybara: "capybara",
+    kage: "ninja_fox", fox: "ninja_fox", ninja_fox: "ninja_fox", ninja: "ninja_fox",
+    shelldon: "scholar_turtle", shelly: "scholar_turtle", turtle: "scholar_turtle", scholar_turtle: "scholar_turtle", scholar: "scholar_turtle",
+    pixel: "gamer_panda", panda: "gamer_panda", gamer_panda: "gamer_panda", gamer: "gamer_panda",
+    mocha: "barista_otter", otter: "barista_otter", barista_otter: "barista_otter", barista: "barista_otter",
+    shadow: "detective_cat", cat: "detective_cat", detective_cat: "detective_cat", detective: "detective_cat",
+    barnaby: "chef_bunny", bunny: "chef_bunny", rabbit: "chef_bunny", chef_bunny: "chef_bunny", chef: "chef_bunny",
+    beats: "lofi_hamster", hamster: "lofi_hamster", lofi_hamster: "lofi_hamster", lofi: "lofi_hamster",
+    ziggy: "rockstar_parrot", parrot: "rockstar_parrot", rockstar_parrot: "rockstar_parrot", rockstar: "rockstar_parrot",
+    astro: "astro_corgi", corgi: "astro_corgi", astro_corgi: "astro_corgi", dog: "astro_corgi",
+    scout: "scout_pup", pup: "scout_pup", scout_pup: "scout_pup", retriever: "scout_pup", golden: "scout_pup",
+    flora: "capybara", lamb: "capybara", royal: "scout_pup", pip: "scout_pup"
+  };
+  return aliasMap[id] || (typeof AVATAR_IMAGES !== "undefined" && AVATAR_IMAGES[id] ? id : "capybara");
+}
+
 function getAvatarImg(id) {
-  if (typeof AVATAR_IMAGES !== "undefined" && AVATAR_IMAGES[id] && !AVATAR_IMAGES[id].startsWith("/*__")) {
-    return AVATAR_IMAGES[id];
+  const normId = resolveAvatarId(id);
+  if (typeof AVATAR_IMAGES !== "undefined" && AVATAR_IMAGES[normId] && !AVATAR_IMAGES[normId].startsWith("/*__")) {
+    return AVATAR_IMAGES[normId];
   }
   const map = {
     capybara: "assets/avatars/capybara.jpg",
@@ -44,7 +65,7 @@ function getAvatarImg(id) {
     astro_corgi: "assets/avatars/astro_corgi.jpg",
     scout_pup: "assets/avatars/scout_pup.jpg"
   };
-  return map[id] || "";
+  return map[normId] || map.capybara;
 }
 
 const PET_AVATARS = [
@@ -102,7 +123,7 @@ function getAvatarAccessorySVG(avatarId) {
 
 function makeLambSVG(opts = {}) {
   const id = opts.id || "x";
-  const avatarId = opts.avatarId || opts.avatar || "flora";
+  const avatarId = opts.avatarId || opts.avatar || "capybara";
   const petImg = getAvatarImg(avatarId);
   const petCfg  = PET_AVATARS.find(p => p.id === avatarId) || PET_AVATARS[0];
   const wool    = opts.wool    || petCfg.wool || "#fdf6e8";
@@ -708,25 +729,7 @@ const AVATAR_VIDEOS = {
   }
 };
 
-function resolveAvatarId(id) {
-  if (!id) return "capybara";
-  id = String(id).toLowerCase().trim().replace(/[\s-]+/g, "_");
-  const aliasMap = {
-    koa: "capybara", capy: "capybara", capybara: "capybara",
-    kage: "ninja_fox", fox: "ninja_fox", ninja_fox: "ninja_fox", ninja: "ninja_fox",
-    shelldon: "scholar_turtle", shelly: "scholar_turtle", turtle: "scholar_turtle", scholar_turtle: "scholar_turtle", scholar: "scholar_turtle",
-    pixel: "gamer_panda", panda: "gamer_panda", gamer_panda: "gamer_panda", gamer: "gamer_panda",
-    mocha: "barista_otter", otter: "barista_otter", barista_otter: "barista_otter", barista: "barista_otter",
-    shadow: "detective_cat", cat: "detective_cat", detective_cat: "detective_cat", detective: "detective_cat",
-    barnaby: "chef_bunny", bunny: "chef_bunny", rabbit: "chef_bunny", chef_bunny: "chef_bunny", chef: "chef_bunny",
-    beats: "lofi_hamster", hamster: "lofi_hamster", lofi_hamster: "lofi_hamster", lofi: "lofi_hamster",
-    ziggy: "rockstar_parrot", parrot: "rockstar_parrot", rockstar_parrot: "rockstar_parrot", rockstar: "rockstar_parrot",
-    astro: "astro_corgi", corgi: "astro_corgi", astro_corgi: "astro_corgi", dog: "astro_corgi",
-    scout: "scout_pup", pup: "scout_pup", scout_pup: "scout_pup", retriever: "scout_pup", golden: "scout_pup",
-    flora: "capybara", lamb: "capybara", royal: "scout_pup", pip: "scout_pup"
-  };
-  return aliasMap[id] || (AVATAR_VIDEOS[id] ? id : "capybara");
-}
+
 
 function getAvatarVideo(avatarId, kind = "happy") {
   const normId = resolveAvatarId(avatarId);
@@ -805,7 +808,7 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
   const videoSrc = getAvatarVideo(avatarId, kind);
 
   box.classList.remove("happy", "oops");
-  box.classList.add(kind === "happy" ? "happy" : "oops");
+  box.classList.add("show", kind === "happy" ? "happy" : "oops");
 
   if (videoSrc) {
     vid.style.display = "block";
@@ -822,7 +825,11 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
       vid.src = videoSrc;
       vid.load();
     }
-    vid.currentTime = 0;
+    try {
+      if (vid.readyState >= 1) {
+        vid.currentTime = 0;
+      }
+    } catch (e) {}
     vid.classList.add("active");
 
     const p = vid.play();
@@ -831,15 +838,17 @@ function triggerPlayerReaction(kind = "happy", ms = 2200) {
     }
 
     clearTimeout(box._reactionTimer);
+    clearTimeout(box._reactionFadeTimer);
     box._reactionTimer = setTimeout(() => {
       box.classList.remove("happy", "oops");
       vid.classList.remove("active");
-      setTimeout(() => {
-        if (!vid.classList.contains("active")) {
+      box._reactionFadeTimer = setTimeout(() => {
+        if (!box.classList.contains("happy") && !box.classList.contains("oops")) {
+          box.classList.remove("show");
           vid.style.display = "none";
           try { vid.pause(); } catch (e) {}
         }
-      }, 180);
+      }, 200);
     }, ms);
   }
 }

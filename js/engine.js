@@ -191,7 +191,7 @@ class Racer {
   constructor(name, targetWords, mode, opts = {}) {
     this.name = name;
     this.mode = mode;                 // "single" | "duo" | "cpu"
-    this.avatarId = opts.avatarId || "flora";
+    this.avatarId = opts.avatarId || "capybara";
     this.diff = opts.diff || "hard";
     this.target = targetWords;        // array of correct words in order
     this.placed = opts.prefilledWords ? opts.prefilledWords.slice() : [];

@@ -164,7 +164,7 @@ function startGame(mode, verse, opts = {}) {
 
   const userProf = Store.profile();
   const youName = opts.youName || userProf.name || "You";
-  const avatarId = opts.avatarId || userProf.avatarId || "flora";
+  const avatarId = opts.avatarId || userProf.avatarId || "capybara";
 
   const kind = opts.rivalKind || (mode === "single" ? "ghost" : "cpu");
   const isDuoLocal = mode === "duo" && kind === "local";
@@ -342,13 +342,15 @@ function startGame(mode, verse, opts = {}) {
   if (G.yipeeRig) G.yipeeRig.destroy();
   G.yipeeRig = rigLamb($("#yipee"), { id: "y", avatarId: G.you.avatarId });
 
-  const petInfo = PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
+  const normAvatarId = typeof resolveAvatarId === "function" ? resolveAvatarId(G.you.avatarId) : (G.you.avatarId || "capybara");
+  const petInfo = PET_AVATARS.find(p => p.id === normAvatarId) || PET_AVATARS.find(p => p.id === G.you.avatarId) || PET_AVATARS[0];
   const idleImg = $("#playerIdleImg");
   if (idleImg) {
-    const imgSrc = getAvatarImg(G.you.avatarId);
+    const imgSrc = getAvatarImg(normAvatarId);
     if (imgSrc) {
       idleImg.src = imgSrc;
       idleImg.style.display = "block";
+      idleImg.classList.remove("hidden");
     }
   }
   const reactionVid = $("#playerReactionVid");
@@ -363,6 +365,10 @@ function startGame(mode, verse, opts = {}) {
       reactionVid.playsInline = true;
       reactionVid.load();
     }
+  }
+  const box = $("#playerAvatarBox");
+  if (box) {
+    box.classList.remove("show", "happy", "oops");
   }
   const passBtn = $("#passBtn");
   if (passBtn) {
@@ -977,10 +983,12 @@ function refreshStats() {
 
 function refreshProfileUI() {
   const prof = Store.profile();
-  const pet = PET_AVATARS.find(p => p.id === prof.avatarId) || PET_AVATARS[0];
+  const normId = typeof resolveAvatarId === "function" ? resolveAvatarId(prof.avatarId) : (prof.avatarId || "capybara");
+  const pet = PET_AVATARS.find(p => p.id === normId) || PET_AVATARS[0];
   const nameEl = $("#menuPlayerName");
   const iconEl = $("#menuAvatarIcon");
   const imgEl = $("#menuAvatarImg");
+  const idleImg = $("#playerIdleImg");
   if (nameEl) nameEl.textContent = prof.name || "You";
   
   const imgSrc = getAvatarImg(pet.id);
@@ -994,6 +1002,11 @@ function refreshProfileUI() {
       iconEl.style.display = "block";
       iconEl.textContent = pet.icon;
     }
+  }
+  if (idleImg && imgSrc) {
+    idleImg.src = imgSrc;
+    idleImg.style.display = "block";
+    idleImg.classList.remove("hidden");
   }
 }
 
